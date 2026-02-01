@@ -3,24 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的旅行足迹 - My Footprints</title>
+    <title>我的旅行足迹</title>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: #f0f2f5; display: flex; flex-direction: column; align-items: center; }
-        header { background-color: #333; color: white; width: 100%; padding: 1rem 0; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .controls { margin: 20px 0; display: flex; gap: 20px; }
-        button { padding: 10px 25px; font-size: 16px; cursor: pointer; border: none; border-radius: 20px; background-color: #e0e0e0; transition: all 0.3s; }
-        button.active { background-color: #1890ff; color: white; box-shadow: 0 4px 10px rgba(24, 144, 255, 0.4); }
-        #map-container { width: 90%; height: 70vh; background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; position: relative;}
-        .stats { font-size: 18px; color: #555; margin-bottom: 20px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; margin: 0; background-color: #f5f5f5; display: flex; flex-direction: column; align-items: center; }
+        
+        /* 顶部标题栏 */
+        header { background-color: #2c3e50; color: white; width: 100%; padding: 15px 0; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { margin: 0; font-size: 1.2rem; font-weight: normal; }
+
+        /* 按钮区域 */
+        .controls { margin: 20px 0; display: flex; gap: 15px; }
+        button { padding: 8px 20px; font-size: 14px; cursor: pointer; border: none; border-radius: 20px; background-color: #fff; border: 1px solid #ddd; transition: all 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        button.active { background-color: #3498db; color: white; border-color: #3498db; }
+
+        /* 地图容器 */
+        #map-container { 
+            width: 95%; 
+            max-width: 1000px;
+            height: 65vh; 
+            background: white; 
+            border-radius: 12px; 
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08); 
+            margin-bottom: 20px; 
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 统计信息 */
+        .stats { font-size: 16px; color: #666; margin-bottom: 10px; font-weight: bold; }
+        
         /* 加载动画 */
-        .loading-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #888; display: none; }
+        .loading { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #999; pointer-events: none; }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>🌍 我的足迹地图</h1>
+    <h1>✈️ 我的足迹地图</h1>
 </header>
 
 <div class="controls">
@@ -28,122 +48,137 @@
     <button id="btn-world" onclick="switchMap('world')">🌏 国际足迹</button>
 </div>
 
-<div class="stats" id="stats-display">已打卡: 0 个区域</div>
+<div class="stats" id="stats-display">统计中...</div>
 
 <div id="map-container">
-    <div id="loading" class="loading-text">地图加载中...</div>
+    <div id="loading-text" class="loading">地图资源加载中...</div>
 </div>
 
 <script>
     const myChart = echarts.init(document.getElementById('map-container'));
     
-    let currentMap = 'china';
-    // 读取记录
-    let visitedData = {
-        china: JSON.parse(localStorage.getItem('visited_china')) || [],
-        world: JSON.parse(localStorage.getItem('visited_world')) || []
-    };
-
-    // 🟢 关键修改：使用 JS 文件而不是 JSON，且换成了 PyEcharts 的稳定 CDN 源
-    // 这些源专门供网页调用，支持 GitHub Pages，不会被拦截
+    // --- 核心配置：使用 jsDelivr 加载 GitHub 上稳定的 GeoJSON 数据 ---
+    // 来源：ECharts 官方开发者 pissang 的仓库，非常稳定
     const MAP_URLS = {
-        china: 'https://assets.pyecharts.org/assets/maps/china.js',
-        world: 'https://assets.pyecharts.org/assets/maps/world.js'
+        china: 'https://cdn.jsdelivr.net/gh/pissang/echarts-map/json/china.json',
+        world: 'https://cdn.jsdelivr.net/gh/pissang/echarts-map/json/world.json'
     };
 
-    function getOption(mapName, visitedList) {
-        const dataSeries = visitedList.map(name => ({ name: name, value: 1 }));
-        return {
-            tooltip: { trigger: 'item', formatter: '{b}' },
-            visualMap: {
-                show: false, min: 0, max: 1,
-                inRange: { color: ['#e0e0e0', '#ff6b6b'] }
-            },
-            geo: {
-                map: mapName,
-                roam: true,
-                label: { show: false }, // 默认不显示文字
-                itemStyle: { areaColor: '#e0e0e0', borderColor: '#fff', borderWidth: 1 },
-                emphasis: { 
-                    itemStyle: { areaColor: '#ffd966' },
-                    label: { show: true } 
-                }
-            },
-            series: [{
-                type: 'map',
-                geoIndex: 0,
-                data: dataSeries
-            }]
-        };
-    }
+    let currentMap = 'china';
+    let visitedData = {
+        china: JSON.parse(localStorage.getItem('visited_china_v2')) || [],
+        world: JSON.parse(localStorage.getItem('visited_world_v2')) || []
+    };
 
-    // 🟢 关键修改：重写加载逻辑，使用 <script> 标签加载
-    function renderMap(mapType) {
-        // 更新按钮状态
+    // 渲染函数
+    async function renderMap(mapType) {
+        // 1. UI 更新
         document.getElementById('btn-china').className = mapType === 'china' ? 'active' : '';
         document.getElementById('btn-world').className = mapType === 'world' ? 'active' : '';
+        document.getElementById('loading-text').style.display = 'block';
         
-        updateStats();
-        
-        // 如果地图已经注册过，直接渲染
-        if (echarts.getMap(mapType)) {
-            myChart.setOption(getOption(mapType, visitedData[mapType]), true);
-            return;
+        try {
+            // 2. 检查并加载地图数据
+            if (!echarts.getMap(mapType)) {
+                const response = await fetch(MAP_URLS[mapType]);
+                if (!response.ok) throw new Error('网络错误');
+                const geoJson = await response.json();
+                echarts.registerMap(mapType, geoJson);
+            }
+
+            // 3. 准备数据
+            document.getElementById('loading-text').style.display = 'none';
+            currentMap = mapType;
+            updateStats();
+
+            const data = visitedData[mapType].map(name => ({ name: name, value: 1 }));
+
+            // 4. ECharts 配置
+            const option = {
+                // 右上角保存图片按钮
+                toolbox: {
+                    show: true,
+                    feature: {
+                        saveAsImage: { show: true, pixelRatio: 2, title: '保存图片' }
+                    },
+                    right: 20,
+                    top: 20
+                },
+                tooltip: { trigger: 'item', formatter: '{b}' },
+                // 视觉映射（去过的地方变色）
+                visualMap: {
+                    show: false,
+                    min: 0, max: 1,
+                    inRange: { color: ['#eeeeee', '#ff7675'] } // 灰色 -> 红色
+                },
+                geo: {
+                    map: mapType,
+                    roam: true, // 允许缩放
+                    zoom: 1.2,
+                    label: { show: false }, // 默认不显示文字
+                    itemStyle: {
+                        areaColor: '#eeeeee', // 默认颜色
+                        borderColor: '#999',  // 边框颜色
+                        borderWidth: 0.5
+                    },
+                    emphasis: { // 鼠标悬停
+                        itemStyle: { areaColor: '#ffeaa7' },
+                        label: { show: true }
+                    }
+                },
+                series: [{
+                    type: 'map',
+                    geoIndex: 0,
+                    data: data
+                }]
+            };
+
+            myChart.setOption(option, true);
+
+        } catch (error) {
+            console.error(error);
+            document.getElementById('loading-text').innerText = "地图加载失败，请刷新网页重试";
         }
-
-        // 显示加载文字
-        document.getElementById('loading').style.display = 'block';
-
-        // 动态创建脚本标签来加载地图
-        const script = document.createElement('script');
-        script.src = MAP_URLS[mapType];
-        
-        script.onload = () => {
-            // JS文件加载完成后，会自动注册地图，我们直接配置即可
-            document.getElementById('loading').style.display = 'none';
-            myChart.setOption(getOption(mapType, visitedData[mapType]), true);
-        };
-        
-        script.onerror = () => {
-            document.getElementById('loading').style.display = 'none';
-            alert('地图加载失败，请检查网络！');
-        };
-
-        document.head.appendChild(script);
     }
 
+    // 更新统计文字
     function updateStats() {
         const count = visitedData[currentMap].length;
-        const unit = currentMap === 'china' ? '个省/直辖市' : '个国家/地区';
-        document.getElementById('stats-display').innerText = `已打卡: ${count} ${unit}`;
+        const region = currentMap === 'china' ? '个省份' : '个国家';
+        document.getElementById('stats-display').innerText = `已点亮 ${count} ${region}`;
     }
 
+    // 点击交互（打卡/取消）
     myChart.on('click', function (params) {
         if (!params.name) return;
-        const regionName = params.name;
+        const name = params.name;
         const list = visitedData[currentMap];
-        const index = list.indexOf(regionName);
+        const index = list.indexOf(name);
 
-        if (index > -1) list.splice(index, 1);
-        else list.push(regionName);
+        if (index > -1) {
+            list.splice(index, 1); // 取消
+        } else {
+            list.push(name); // 打卡
+        }
 
-        localStorage.setItem(`visited_${currentMap}`, JSON.stringify(list));
+        // 保存并刷新
+        localStorage.setItem(`visited_${currentMap}_v2`, JSON.stringify(list));
         updateStats();
         
-        // 仅刷新数据，保持地图缩放位置不变
         myChart.setOption({
-            series: [{ data: list.map(name => ({ name: name, value: 1 })) }]
+            series: [{ data: list.map(n => ({ name: n, value: 1 })) }]
         });
     });
 
-    function switchMap(type) {
-        currentMap = type;
+    // 切换地图
+    window.switchMap = function(type) {
         renderMap(type);
     }
 
+    // 窗口调整
     window.addEventListener('resize', () => myChart.resize());
-    
-    // 初始化
+
+    // 🚀 启动！
     renderMap('china');
 
 </script>
