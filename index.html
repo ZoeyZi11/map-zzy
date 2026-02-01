@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的旅行足迹 - 简约版</title>
+    <title>我的旅行足迹 - 完美修复版</title>
     
     <script src="https://assets.pyecharts.org/assets/echarts.min.js"></script>
     <script src="https://assets.pyecharts.org/assets/maps/china.js"></script>
@@ -17,40 +17,28 @@
             padding: 15px; 
             text-align: center;
             border-bottom: 1px solid #eee;
-            position: relative; 
-            z-index: 100;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
         
-        h1 { margin: 0 0 15px 0; font-size: 22px; color: #333; letter-spacing: 1px; }
+        h1 { margin: 0 0 10px 0; font-size: 24px; color: #333; letter-spacing: 1px; }
         
-        /* 按钮样式优化 */
         .controls button {
-            padding: 8px 24px; 
-            margin: 0 5px; 
-            cursor: pointer;
-            border: 1px solid #333; 
-            background: #fff; 
-            color: #333; 
-            border-radius: 4px; 
-            transition: all 0.2s; 
-            font-size: 14px;
+            padding: 8px 25px; margin: 0 5px; cursor: pointer;
+            border: 1px solid #333; background: #fff; color: #333; 
+            border-radius: 4px; font-size: 14px; transition: 0.3s;
         }
-        .controls button:hover { background: #f5f5f5; }
+        .controls button:hover { background: #f0f0f0; }
         .controls button.active { background: #333; color: #fff; }
         
-        /* 功能区 */
-        .tools { margin-top: 15px; display: flex; justify-content: center; align-items: center; gap: 20px; font-size: 14px; color: #666; }
+        .tools { margin-top: 15px; font-size: 14px; color: #666; display: flex; justify-content: center; gap: 15px; align-items: center;}
         
-        /* 保存按钮特别样式 */
+        /* 红色保存按钮 */
         .save-btn {
-            background-color: #d9534f !important;
-            color: white !important;
-            border-color: #d9534f !important;
-            font-weight: bold;
+            background-color: #d9534f !important; border-color: #d9534f !important; color: white !important;
         }
         .save-btn:hover { background-color: #c9302c !important; }
 
-        #map-container { width: 100%; height: calc(100vh - 150px); }
+        #map-container { width: 100%; height: calc(100vh - 140px); }
     </style>
 </head>
 <body>
@@ -63,9 +51,7 @@
     </div>
     <div class="tools">
         <span>已点亮: <strong id="count" style="color:#d9534f; font-size:18px;">0</strong> 处</span>
-        |
-        <a href="#" onclick="clearData(); return false;" style="color:#999; text-decoration:none;">清空重置</a>
-        |
+        <a href="#" onclick="clearData(); return false;" style="color:#999; text-decoration:none;">[清空]</a>
         <button class="save-btn" onclick="saveMapImage()">📷 保存图片</button>
     </div>
 </div>
@@ -77,81 +63,90 @@
     var currentMode = 'china';
     var visitedData = { china: [], world: [] };
 
-    // 读取历史记录
+    // 读取缓存
     try {
-        var saved = localStorage.getItem('my_footprint_v4'); // 升级存储key
+        var saved = localStorage.getItem('my_footprint_v5'); // 升级版本号以防缓存冲突
         if (saved) visitedData = JSON.parse(saved);
     } catch(e) {}
 
-    // 初始化
+    // 启动
     initMap('china');
 
     function initMap(mapType) {
         currentMode = mapType;
         
-        // 更新顶部按钮状态
+        // 更新按钮UI
         document.getElementById('btn-china').className = mapType === 'china' ? 'active' : '';
         document.getElementById('btn-world').className = mapType === 'world' ? 'active' : '';
 
-        // 准备数据
+        // 构造数据：去过的地方 value=1
         var dataList = visitedData[mapType].map(function(name) {
             return { name: name, value: 1 };
         });
 
         var option = {
-            // 背景设为白色 (如果想要完全透明，改成 'transparent')
-            backgroundColor: '#ffffff',
+            backgroundColor: '#ffffff', // 背景纯白
             
             tooltip: {
                 trigger: 'item',
                 formatter: function(params) {
-                    return params.name + (visitedData[mapType].indexOf(params.name) > -1 ? ' (已去过)' : '');
+                    // 提示框逻辑
+                    if (params.value === 1) return params.name + ' (已去过)';
+                    return params.name;
                 }
             },
-            
-            geo: {
+
+            // 🌟 核心修复：使用 VisualMap 强制控制颜色
+            // 逻辑：有数值(1)的显示红色，没有数值(NaN)的显示默认白色
+            visualMap: {
+                show: false, // 不显示左下角的色条
+                min: 0,
+                max: 1,
+                pieces: [
+                    { value: 1, color: '#ff5252' } // 只有 value=1 的才变红
+                ],
+                outOfRange: {
+                    color: '#ffffff' // 没数据的全部白色
+                }
+            },
+
+            series: [{
+                type: 'map',
                 map: mapType,
                 roam: true, // 允许缩放
                 zoom: 1.2,
-                label: {
-                    show: mapType === 'china', // 只有国内显示地名
-                    color: '#999',
-                    fontSize: 10
-                },
-                // --- 核心修改：未去过的地方样式 ---
+                
+                // 默认样式（没去过的地方的边框）
                 itemStyle: {
-                    areaColor: '#ffffff', // ⚠️ 没去过的地方是白色
-                    borderColor: '#999',  // 边框灰色，勾勒轮廓
-                    borderWidth: 1        // 边框粗细
+                    areaColor: '#ffffff',
+                    borderColor: '#999',
+                    borderWidth: 0.5
                 },
+                
+                // 鼠标悬停高亮样式
                 emphasis: {
-                    itemStyle: { areaColor: '#ffe082' }, // 鼠标放上去是淡黄色
-                    label: { show: true }
-                }
-            },
-            
-            series: [{
-                type: 'map',
-                geoIndex: 0,
+                    itemStyle: {
+                        areaColor: '#ffe082' // 黄色高亮
+                    },
+                    label: {
+                        show: true // 只有鼠标放上去才显示名字，保持界面干净
+                    }
+                },
+                
+                // 注入数据
                 data: dataList,
-                // --- 核心修改：去过的地方样式 ---
-                itemStyle: {
-                    areaColor: '#ff5252', // ⚠️ 去过的地方是红色 (可自行修改颜色)
-                    borderColor: '#fff',
-                    borderWidth: 1
-                }
+
+                // 世界地图名称修正映射
+                nameMap: mapType === 'world' ? {
+                    'United States': 'United States of America'
+                } : {}
             }]
         };
 
-        // 世界地图名称修正
-        if (mapType === 'world') {
-            option.geo.nameMap = { 'United States': 'United States of America' };
-        }
-
-        myChart.setOption(option, true);
+        myChart.setOption(option, true); // true表示彻底重绘，防止残留
         updateCount();
 
-        // 绑定点击逻辑
+        // 绑定点击事件
         myChart.off('click');
         myChart.on('click', function(params) {
             if (params.name) {
@@ -163,12 +158,15 @@
     function toggleVisit(name) {
         var list = visitedData[currentMode];
         var index = list.indexOf(name);
+        
         if (index > -1) {
-            list.splice(index, 1);
+            list.splice(index, 1); // 再次点击，取消
         } else {
-            list.push(name);
+            list.push(name); // 首次点击，添加
         }
-        localStorage.setItem('my_footprint_v4', JSON.stringify(visitedData));
+        
+        // 保存并刷新
+        localStorage.setItem('my_footprint_v5', JSON.stringify(visitedData));
         initMap(currentMode);
     }
 
@@ -177,28 +175,23 @@
     }
     
     function clearData() {
-        if(confirm('确定要清空所有记录吗？')) {
+        if(confirm('确定清空所有记录？')) {
             visitedData[currentMode] = [];
-            localStorage.setItem('my_footprint_v4', JSON.stringify(visitedData));
+            localStorage.setItem('my_footprint_v5', JSON.stringify(visitedData));
             initMap(currentMode);
         }
     }
 
-    // --- 新增：一键保存图片功能 ---
     function saveMapImage() {
-        // 导出图片 Base64
         var url = myChart.getDataURL({
-            type: 'png',        // 格式
-            pixelRatio: 2,      // 2倍高清，防止模糊
-            backgroundColor: '#fff' // 导出背景色
+            type: 'png',
+            pixelRatio: 2, // 高清
+            backgroundColor: '#fff',
+            excludeComponents: ['toolbox']
         });
-        
-        // 创建下载链接
         var a = document.createElement('a');
-        a.download = '我的足迹地图_' + currentMode + '.png'; // 文件名
+        a.download = '我的足迹_' + currentMode + '.png';
         a.href = url;
-        
-        // 触发下载
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
