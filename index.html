@@ -3,162 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的旅行足迹 - 国内极速版</title>
+    <title>我的旅行足迹 - 稳定修复版</title>
     
-    <script src="https://lib.baomitu.com/echarts/4.9.0-rc.1/echarts.min.js"></script>
-    
-    <script src="https://lib.baomitu.com/echarts/4.9.0-rc.1/map/js/china.js"></script>
-    <script src="https://lib.baomitu.com/echarts/4.9.0-rc.1/map/js/world.js"></script>
+    <script src="https://assets.pyecharts.org/assets/echarts.min.js"></script>
+    <script src="https://assets.pyecharts.org/assets/maps/china.js"></script>
+    <script src="https://assets.pyecharts.org/assets/maps/world.js"></script>
 
     <style>
-        body { margin: 0; padding: 0; font-family: 'Microsoft YaHei', sans-serif; background-color: #f0f2f5; }
+        /* 样式保持清爽 */
+        body { margin: 0; padding: 0; font-family: 'Microsoft YaHei', sans-serif; background-color: #f3f4f6; }
         .header {
             background: #fff; padding: 15px; text-align: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            position: relative; z-index: 100;
         }
-        h1 { margin: 0 0 10px 0; font-size: 22px; color: #333; }
+        h1 { margin: 0 0 10px 0; font-size: 20px; color: #333; }
+        
+        /* 按钮组 */
+        .controls { margin-bottom: 10px; }
         .controls button {
-            padding: 6px 15px; margin: 0 5px; cursor: pointer;
-            border: 1px solid #1890ff; background: #fff; color: #1890ff; border-radius: 4px;
+            padding: 8px 20px; margin: 0 5px; cursor: pointer;
+            border: 1px solid #000; background: #fff; color: #000; 
+            border-radius: 50px; transition: all 0.2s; font-weight: bold;
         }
-        .controls button.active { background: #1890ff; color: #fff; }
-        .stats { margin-top: 10px; font-size: 14px; color: #666; }
-        #map-container { width: 100%; height: calc(100vh - 130px); margin-top: 10px; }
-        .tips { font-size: 12px; color: #999; margin-top: 5px; }
+        .controls button:hover { background: #f0f0f0; }
+        .controls button.active { background: #000; color: #fff; border-color: #000; }
+        
+        .stats { font-size: 14px; color: #666; }
+        #count { color: #d32f2f; font-weight: bold; font-size: 18px; margin: 0 4px; }
+        
+        #map-container { width: 100%; height: calc(100vh - 140px); background: #aadaff; } /* 海洋颜色 */
     </style>
 </head>
 <body>
 
 <div class="header">
-    <h1>🌍 我的足迹地图 (国内极速版)</h1>
+    <h1>📍 我的足迹地图</h1>
     <div class="controls">
-        <button id="btn-china" class="active" onclick="switchMap('china')">🇨🇳 国内 (省/市)</button>
-        <button id="btn-world" onclick="switchMap('world')">🌏 国际 (国家)</button>
+        <button id="btn-china" class="active" onclick="initMap('china')">🇨🇳 国内 (省份)</button>
+        <button id="btn-world" onclick="initMap('world')">🌏 国际 (国家)</button>
     </div>
     <div class="stats">
-        已点亮: <strong id="count" style="color:#f56c6c; font-size:18px;">0</strong> 个区域
-        <br>
-        <span class="tips">点击地图点亮，再次点击取消</span>
-        <br>
-        <a href="#" onclick="clearData();return false;" style="color:#999;font-size:12px;">[清空数据]</a>
+        已点亮: <span id="count">0</span> 个地方
+        | <a href="#" onclick="clearData()" style="color:#999;text-decoration:none;font-size:12px">清空重置</a>
     </div>
 </div>
 
 <div id="map-container"></div>
 
 <script>
-    // --- 全局变量 ---
     var myChart = echarts.init(document.getElementById('map-container'));
-    var currentMapType = 'china'; 
-    // 数据存储结构
+    var currentMode = 'china';
     var visitedData = { china: [], world: [] };
 
-    // --- 初始化 ---
-    // 读取本地存储
-    var saved = localStorage.getItem('my_footprint_v2');
-    if (saved) { visitedData = JSON.parse(saved); }
+    // 读取缓存
+    try {
+        var saved = localStorage.getItem('my_footprint_v3');
+        if (saved) visitedData = JSON.parse(saved);
+    } catch(e) {}
 
-    // 启动默认视图
-    renderMap('china');
+    // 启动
+    initMap('china');
 
-    // --- 核心逻辑 ---
-    function switchMap(type) {
-        currentMapType = type;
-        // 切换按钮样式
-        document.getElementById('btn-china').className = type === 'china' ? 'active' : '';
-        document.getElementById('btn-world').className = type === 'world' ? 'active' : '';
-        renderMap(type);
-    }
-
-    function renderMap(mapName) {
-        // 计算高亮数据
-        var dataArr = [];
-        var currentList = visitedData[currentMapType];
+    function initMap(mapType) {
+        currentMode = mapType;
         
-        for (var i = 0; i < currentList.length; i++) {
-            dataArr.push({ name: currentList[i], value: 1 });
-        }
+        // 更新按钮
+        document.getElementById('btn-china').className = mapType === 'china' ? 'active' : '';
+        document.getElementById('btn-world').className = mapType === 'world' ? 'active' : '';
+
+        // 准备数据
+        var dataList = visitedData[mapType].map(function(name) {
+            return { name: name, value: 1 };
+        });
 
         var option = {
+            // 背景色 (海洋颜色)
+            backgroundColor: '#aadaff', 
+            
             tooltip: {
                 trigger: 'item',
                 formatter: function(params) {
-                    var status = currentList.indexOf(params.name) > -1 ? ' (已去过 ✅)' : '';
-                    return params.name + status;
+                    return params.name + (visitedData[mapType].indexOf(params.name) > -1 ? ' (已去过 ✅)' : '');
                 }
             },
-            visualMap: {
-                show: false,
-                min: 0, max: 1,
-                inRange: { color: ['#eeeeee', '#f56c6c'] } // 灰色 -> 红色
-            },
+            
             geo: {
-                map: mapName,
-                roam: true, // 允许缩放平移
+                map: mapType,
+                roam: true,
                 zoom: 1.2,
                 label: {
-                    show: mapName === 'china', // 只有中国地图显示文字，世界地图文字太乱
-                    fontSize: 8,
-                    color: 'rgba(0,0,0,0.6)'
+                    show: mapType === 'china', // 国内显示文字
+                    color: '#333',
+                    fontSize: 10
                 },
                 itemStyle: {
-                    areaColor: '#eeeeee',
+                    areaColor: '#f3f4f6', // 陆地默认颜色
                     borderColor: '#999',
                     borderWidth: 0.5
                 },
                 emphasis: {
-                    itemStyle: { areaColor: '#ffdd57' },
+                    itemStyle: { areaColor: '#ffeb3b' }, // 鼠标悬停颜色
                     label: { show: true }
                 }
             },
+            
             series: [{
                 type: 'map',
                 geoIndex: 0,
-                data: dataArr
+                data: dataList,
+                // 点亮后的样式
+                itemStyle: {
+                    areaColor: '#ff5252' // 点亮颜色(红色)
+                }
             }]
         };
 
-        myChart.setOption(option, true); // true 表示不合并，彻底重绘
+        // 针对世界地图的特殊调整（修正部分国家名字匹配问题）
+        if (mapType === 'world') {
+            option.geo.nameMap = {
+                'United States': 'United States of America'
+            };
+        }
+
+        myChart.setOption(option, true);
         updateCount();
 
-        // 绑定点击事件 (先解绑防止重复)
+        // 点击事件
         myChart.off('click');
-        myChart.on('click', function (params) {
-            if(params.name) {
+        myChart.on('click', function(params) {
+            if (params.name) {
                 toggleVisit(params.name);
             }
         });
     }
 
     function toggleVisit(name) {
-        var list = visitedData[currentMapType];
+        var list = visitedData[currentMode];
         var index = list.indexOf(name);
-        
         if (index > -1) {
-            list.splice(index, 1); // 如果有，就删除
+            list.splice(index, 1);
         } else {
-            list.push(name); // 如果没有，就添加
+            list.push(name);
         }
-        
-        localStorage.setItem('my_footprint_v2', JSON.stringify(visitedData));
-        renderMap(currentMapType); // 刷新
+        localStorage.setItem('my_footprint_v3', JSON.stringify(visitedData));
+        initMap(currentMode);
     }
 
     function updateCount() {
-        document.getElementById('count').innerText = visitedData[currentMapType].length;
+        document.getElementById('count').innerText = visitedData[currentMode].length;
     }
     
     function clearData() {
-        if(confirm("确定清空当前地图记录吗？")) {
-            visitedData[currentMapType] = [];
-            localStorage.setItem('my_footprint_v2', JSON.stringify(visitedData));
-            renderMap(currentMapType);
+        if(confirm('重置地图？')) {
+            visitedData[currentMode] = [];
+            localStorage.setItem('my_footprint_v3', JSON.stringify(visitedData));
+            initMap(currentMode);
         }
     }
 
-    // 窗口大小改变自适应
     window.onresize = function() { myChart.resize(); };
-
 </script>
 </body>
 </html>
