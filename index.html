@@ -3,192 +3,659 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的旅行足迹</title>
-    
+    <title>旅行口袋</title>
     <script src="https://assets.pyecharts.org/assets/echarts.min.js"></script>
     <script src="https://assets.pyecharts.org/assets/maps/china.js"></script>
     <script src="https://assets.pyecharts.org/assets/maps/world.js"></script>
-
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
-        body { margin: 0; padding: 0; font-family: 'Microsoft YaHei', sans-serif; background-color: #ffffff; }
-        
-        .header {
-            background: #fff; 
-            padding: 15px; 
-            text-align: center;
-            border-bottom: 1px solid #eee;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        :root {
+            --bg: #F0F5FA;
+            --bg-card: #FFFFFF;
+            --accent-blue: #DDEEFF;
+            --accent-coral: #DDEEFF;
+            --coral-dark: #3A87C8;
+            --coral-med: #7BB8E8;
+            --text-primary: #1E2D3D;
+            --text-secondary: #607D8B;
+            --text-light: #B0BEC5;
+            --border: #E0EAF2;
+            --shadow: rgba(30,80,140,0.07);
+            --shadow-deep: rgba(30,80,140,0.15);
+            --lit-color: #3A87C8;
+            --unlit-color: #EEEEEE;
+            --hover-color: #C9E4F8;
+            --border-color: #C5D9E8;
         }
-        
-        h1 { margin: 0 0 10px 0; font-size: 24px; color: #333; letter-spacing: 1px; }
-        
-        .controls button {
-            padding: 8px 25px; margin: 0 5px; cursor: pointer;
-            border: 1px solid #333; background: #fff; color: #333; 
-            border-radius: 4px; font-size: 14px; transition: 0.3s;
-        }
-        .controls button:hover { background: #f0f0f0; }
-        .controls button.active { background: #333; color: #fff; }
-        
-        .tools { margin-top: 15px; font-size: 14px; color: #666; display: flex; justify-content: center; gap: 15px; align-items: center;}
-        
-        /* 红色保存按钮 */
-        .save-btn {
-            background-color: #d9534f !important; border-color: #d9534f !important; color: white !important;
-        }
-        .save-btn:hover { background-color: #c9302c !important; }
 
-        #map-container { width: 100%; height: calc(100vh - 140px); }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── Header ── */
+        .header {
+            background: var(--bg-card);
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+            box-shadow: 0 2px 12px var(--shadow);
+            flex-shrink: 0;
+            z-index: 10;
+        }
+
+        .header-left { display: flex; align-items: center; gap: 16px; }
+
+        .logo {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: 2px;
+        }
+        .logo span { color: var(--coral-dark); /* now blue */ }
+
+        .tab-switch {
+            display: flex;
+            background: var(--bg);
+            border-radius: 20px;
+            padding: 3px;
+            gap: 2px;
+        }
+        .tab-switch button {
+            padding: 6px 18px;
+            border: none;
+            background: transparent;
+            border-radius: 18px;
+            font-size: 13px;
+            font-family: 'Noto Sans SC', sans-serif;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.25s;
+        }
+        .tab-switch button.active {
+            background: var(--bg-card);
+            color: #3A87C8;
+            box-shadow: 0 1px 6px var(--shadow);
+            font-weight: 500;
+        }
+
+        .header-right { display: flex; align-items: center; gap: 16px; }
+
+        .stat-pill {
+            background: #DDEEFF;
+            border-radius: 20px;
+            padding: 5px 14px;
+            font-size: 13px;
+            color: #3A87C8;
+            font-weight: 500;
+        }
+        .stat-pill strong { font-size: 16px; }
+
+        .btn {
+            padding: 7px 16px;
+            border-radius: 8px;
+            border: none;
+            font-size: 13px;
+            font-family: 'Noto Sans SC', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+        .btn-ghost:hover { background: var(--bg); }
+        .btn-primary {
+            background: var(--coral-dark);
+            color: #fff;
+        }
+        .btn-primary:hover { background: #E64A19; }
+
+        /* ── Map ── */
+        #map-container {
+            flex: 1;
+            width: 100%;
+        }
+
+        /* ── Overlay backdrop ── */
+        .overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            animation: fadeIn 0.2s ease;
+        }
+        .overlay.active { display: flex; align-items: center; justify-content: center; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ── Modal Base ── */
+        .modal {
+            background: var(--bg-card);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            width: 90%;
+            max-width: 560px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+        }
+
+        .modal-header {
+            padding: 20px 24px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            background: var(--bg-card);
+            z-index: 1;
+        }
+        .modal-title {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .modal-subtitle { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+        .close-btn {
+            width: 30px; height: 30px;
+            border: none; background: var(--bg);
+            border-radius: 50%;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--text-secondary);
+            transition: 0.2s;
+        }
+        .close-btn:hover { background: var(--border); }
+
+        .modal-body { padding: 20px 24px; }
+
+        /* ── Upload form ── */
+        .form-section { margin-bottom: 20px; }
+        .form-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            display: block;
+        }
+        .required-dot {
+            display: inline-block;
+            width: 6px; height: 6px;
+            background: #3A87C8;
+            border-radius: 50%;
+            margin-left: 4px;
+            vertical-align: middle;
+        }
+
+        /* Photo upload zone */
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+        .photo-slot {
+            aspect-ratio: 1;
+            border-radius: 10px;
+            border: 1.5px dashed var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            overflow: hidden;
+            position: relative;
+            background: var(--bg);
+            transition: 0.2s;
+        }
+        .photo-slot:hover { border-color: #3A87C8; background: #DDEEFF; }
+        .photo-slot.filled { border-style: solid; border-color: var(--border); }
+        .photo-slot img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+        }
+        .photo-slot .add-icon {
+            font-size: 22px;
+            color: var(--text-light);
+        }
+        .photo-slot .remove-photo {
+            position: absolute;
+            top: 4px; right: 4px;
+            width: 20px; height: 20px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 50%;
+            border: none;
+            color: white;
+            font-size: 11px;
+            cursor: pointer;
+            display: none;
+            align-items: center; justify-content: center;
+        }
+        .photo-slot:hover .remove-photo { display: flex; }
+        .photo-hint { font-size: 11px; color: var(--text-light); margin-top: 6px; }
+
+        /* Date input */
+        .date-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Noto Sans SC', sans-serif;
+            color: var(--text-primary);
+            background: var(--bg);
+            outline: none;
+            transition: 0.2s;
+        }
+        .date-input:focus { border-color: #3A87C8; background: #fff; }
+
+        /* Notes textarea */
+        .notes-textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Noto Sans SC', sans-serif;
+            color: var(--text-primary);
+            background: var(--bg);
+            outline: none;
+            resize: none;
+            height: 80px;
+            transition: 0.2s;
+        }
+        .notes-textarea:focus { border-color: #3A87C8; background: #fff; }
+        .char-count { font-size: 11px; color: var(--text-light); text-align: right; margin-top: 4px; }
+
+        .emoji-picker { margin-top: 6px; display: flex; gap: 6px; flex-wrap: wrap; }
+        .emoji-btn {
+            width: 30px; height: 30px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex; align-items: center; justify-content: center;
+            transition: 0.15s;
+        }
+        .emoji-btn:hover { background: #DDEEFF; border-color: #7BB8E8; }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        /* ── Memory viewer ── */
+        .memory-modal { max-width: 640px; }
+
+        .memory-tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 1px solid var(--border);
+            margin: -1px 0 0;
+        }
+        /* tab items inside modal header area */
+
+        .memories-list { display: flex; flex-direction: column; gap: 16px; }
+
+        .memory-card {
+            background: var(--bg);
+            border-radius: 12px;
+            padding: 16px;
+            position: relative;
+        }
+        .memory-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .memory-date {
+            font-size: 12px;
+            color: #3A87C8;
+            font-weight: 500;
+            background: #DDEEFF;
+            padding: 3px 10px;
+            border-radius: 10px;
+        }
+        .memory-actions { display: flex; gap: 6px; }
+        .memory-action-btn {
+            padding: 4px 10px;
+            font-size: 11px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: 0.15s;
+        }
+        .memory-action-btn:hover { background: var(--border); }
+        .memory-action-btn.del:hover { background: #FFEBEE; color: #d32f2f; border-color: #FFCDD2; }
+
+        .memory-photos {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+        .memory-photos img {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .memory-photos img:hover { opacity: 0.85; }
+
+        .memory-note {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+        }
+        .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
+        .empty-state p { font-size: 14px; }
+
+        /* ── Lightbox ── */
+        .lightbox {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+        .lightbox.active { display: flex; }
+        .lightbox img {
+            max-width: 90vw;
+            max-height: 90vh;
+            border-radius: 4px;
+            object-fit: contain;
+        }
+        .lightbox-close {
+            position: fixed;
+            top: 20px; right: 24px;
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        /* ── Tooltip region name (map hover) ── */
+        .region-tooltip {
+            position: fixed;
+            background: rgba(44,44,44,0.85);
+            color: #fff;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 50;
+            display: none;
+            backdrop-filter: blur(4px);
+        }
+
+        /* Add memory button floating */
+        .add-memory-bar {
+            padding: 0 24px 20px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <h1>🗺️ 我的旅行足迹</h1>
-    <div class="controls">
-        <button id="btn-china" class="active" onclick="initMap('china')">🇨🇳 国内</button>
-        <button id="btn-world" onclick="initMap('world')">🌏 世界</button>
+    <div class="header-left">
+        <div class="logo">旅行<span>口袋</span></div>
+        <div class="tab-switch">
+            <button id="btn-china" class="active" onclick="initMap('china')">🇨🇳 国内</button>
+            <button id="btn-world" onclick="initMap('world')">🌏 世界</button>
+        </div>
     </div>
-    <div class="tools">
-        <span>已点亮: <strong id="count" style="color:#d9534f; font-size:18px;">0</strong> 处</span>
-        <a href="#" onclick="clearData(); return false;" style="color:#999; text-decoration:none;">[清空]</a>
-        <button class="save-btn" onclick="saveMapImage()">📷 保存图片</button>
+    <div class="header-right">
+        <div class="stat-pill">已点亮 <strong id="count">0</strong> 处</div>
+        <button class="btn btn-ghost" onclick="clearData()">清空</button>
+        <button class="btn btn-primary" onclick="saveMapImage()">📷 保存图片</button>
     </div>
 </div>
 
 <div id="map-container"></div>
 
+<!-- Region Tooltip -->
+<div class="region-tooltip" id="regionTooltip"></div>
+
+<!-- ── Upload Modal ── -->
+<div class="overlay" id="uploadOverlay">
+    <div class="modal">
+        <div class="modal-header">
+            <div>
+                <div class="modal-title">✈️ 添加旅行回忆</div>
+                <div class="modal-subtitle" id="uploadRegionName">选择区域</div>
+            </div>
+            <button class="close-btn" onclick="closeUpload()">✕</button>
+        </div>
+        <div class="modal-body">
+            <!-- Photos -->
+            <div class="form-section">
+                <label class="form-label">旅行照片<span class="required-dot"></span></label>
+                <div class="photo-grid" id="photoGrid"></div>
+                <div class="photo-hint">支持 JPG/PNG，单张不超过 5MB，最多 9 张</div>
+                <input type="file" id="photoInput" accept="image/jpeg,image/png" multiple style="display:none" onchange="handlePhotoSelect(event)">
+            </div>
+            <!-- Date -->
+            <div class="form-section">
+                <label class="form-label">旅行时间<span class="required-dot"></span></label>
+                <input type="date" class="date-input" id="travelDate">
+            </div>
+            <!-- Notes -->
+            <div class="form-section">
+                <label class="form-label">旅行备注 <span style="color:var(--text-light);font-weight:400">（选填）</span></label>
+                <textarea class="notes-textarea" id="travelNote" placeholder="记录旅途中的故事..." maxlength="100" oninput="updateCharCount()"></textarea>
+                <div class="char-count"><span id="charCount">0</span>/100</div>
+                <div class="emoji-picker">
+                    <span style="font-size:11px;color:var(--text-light);align-self:center">快速插入：</span>
+                    <button class="emoji-btn" onclick="insertEmoji('❤️')">❤️</button>
+                    <button class="emoji-btn" onclick="insertEmoji('🌟')">🌟</button>
+                    <button class="emoji-btn" onclick="insertEmoji('🎉')">🎉</button>
+                    <button class="emoji-btn" onclick="insertEmoji('🍜')">🍜</button>
+                    <button class="emoji-btn" onclick="insertEmoji('🏔️')">🏔️</button>
+                    <button class="emoji-btn" onclick="insertEmoji('🌊')">🌊</button>
+                    <button class="emoji-btn" onclick="insertEmoji('🌸')">🌸</button>
+                    <button class="emoji-btn" onclick="insertEmoji('😊')">😊</button>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" onclick="closeUpload()">取消</button>
+            <button class="btn btn-primary" onclick="saveMemory()">保存回忆</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Memory Viewer Modal ── -->
+<div class="overlay" id="memoryOverlay">
+    <div class="modal memory-modal">
+        <div class="modal-header">
+            <div>
+                <div class="modal-title" id="memoryRegionTitle">旅行回忆</div>
+                <div class="modal-subtitle" id="memoryCount">0 段回忆</div>
+            </div>
+            <button class="close-btn" onclick="closeMemory()">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="memories-list" id="memoriesList"></div>
+        </div>
+        <div class="add-memory-bar">
+            <button class="btn btn-primary" onclick="openUploadFromMemory()">＋ 添加新回忆</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Lightbox ── -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+    <span class="lightbox-close">✕</span>
+    <img id="lightboxImg" src="" alt="">
+</div>
+
 <script>
     var myChart = echarts.init(document.getElementById('map-container'));
     var currentMode = 'china';
-    var visitedData = { china: [], world: [] };
+    var currentRegion = '';
+    var pendingPhotos = []; // base64 strings during upload session
 
-    // 读取缓存
+    // Data store
+    var visitedData = { china: [], world: [] };
+    var memoriesData = {}; // key: "mode|regionName" => [{date, photos:[], note}]
+
     try {
-        var saved = localStorage.getItem('my_footprint_v5'); // 升级版本号以防缓存冲突
-        if (saved) visitedData = JSON.parse(saved);
+        var s1 = localStorage.getItem('footprint_visited_v6');
+        var s2 = localStorage.getItem('footprint_memories_v6');
+        if (s1) visitedData = JSON.parse(s1);
+        if (s2) memoriesData = JSON.parse(s2);
     } catch(e) {}
 
-    // 启动
-    initMap('china');
+    function save() {
+        try {
+            localStorage.setItem('footprint_visited_v6', JSON.stringify(visitedData));
+            localStorage.setItem('footprint_memories_v6', JSON.stringify(memoriesData));
+        } catch(e) {
+            alert('存储空间不足，请清理部分照片后重试。');
+        }
+    }
 
+    function getMemoryKey(mode, region) { return mode + '|' + region; }
+
+    // ── MAP ──
     function initMap(mapType) {
         currentMode = mapType;
-        
-        // 更新按钮UI
         document.getElementById('btn-china').className = mapType === 'china' ? 'active' : '';
         document.getElementById('btn-world').className = mapType === 'world' ? 'active' : '';
 
-        // 构造数据：去过的地方 value=1
         var dataList = visitedData[mapType].map(function(name) {
             return { name: name, value: 1 };
         });
 
         var option = {
-            backgroundColor: '#ffffff', // 背景纯白
-            
-            tooltip: {
-                trigger: 'item',
-                formatter: function(params) {
-                    // 提示框逻辑
-                    if (params.value === 1) return params.name + ' (已去过)';
-                    return params.name;
-                }
-            },
-
-            // 🌟 核心修复：使用 VisualMap 强制控制颜色
-            // 逻辑：有数值(1)的显示红色，没有数值(NaN)的显示默认白色
+            backgroundColor: '#F0F5FA',
+            tooltip: { show: false },
             visualMap: {
-                show: false, // 不显示左下角的色条
-                min: 0,
-                max: 1,
-                pieces: [
-                    { value: 1, color: '#ff5252' } // 只有 value=1 的才变红
-                ],
-                outOfRange: {
-                    color: '#ffffff' // 没数据的全部白色
-                }
+                show: false,
+                min: 0, max: 1,
+                pieces: [{ value: 1, color: '#3A87C8' }],
+                outOfRange: { color: '#EEEEEE' }
             },
-
             series: [{
                 type: 'map',
                 map: mapType,
-                roam: true, // 允许缩放
+                roam: true,
                 zoom: 1.2,
-                
-                // 默认样式（没去过的地方的边框）
                 itemStyle: {
-                    areaColor: '#ffffff',
-                    borderColor: '#999',
+                    areaColor: '#EEEEEE',
+                    borderColor: '#C5D9E8',
                     borderWidth: 0.5
                 },
-                
-                // 鼠标悬停高亮样式
                 emphasis: {
-                    itemStyle: {
-                        areaColor: '#ffe082' // 黄色高亮
-                    },
+                    itemStyle: { areaColor: '#C9E4F8' },
                     label: {
-                        show: true // 只有鼠标放上去才显示名字，保持界面干净
+                        show: true,
+                        color: '#2C2C2C',
+                        fontSize: 12,
+                        fontFamily: 'Noto Sans SC, sans-serif'
                     }
                 },
-                
-                // 注入数据
+                select: {
+                    itemStyle: { areaColor: '#FF7043' },
+                    label: { show: false }
+                },
                 data: dataList,
-
-                // 世界地图名称修正映射
-                nameMap: mapType === 'world' ? {
-                    'United States': 'United States of America'
-                } : {}
+                nameMap: mapType === 'world' ? { 'United States': 'United States of America' } : {}
             }]
         };
 
-        myChart.setOption(option, true); // true表示彻底重绘，防止残留
+        myChart.setOption(option, true);
         updateCount();
 
-        // 绑定点击事件
         myChart.off('click');
-        myChart.on('click', function(params) {
+        myChart.off('mouseover');
+        myChart.off('mouseout');
+
+        // Hover tooltip
+        var tooltip = document.getElementById('regionTooltip');
+        myChart.on('mouseover', function(params) {
             if (params.name) {
-                toggleVisit(params.name);
+                tooltip.textContent = params.name;
+                tooltip.style.display = 'block';
             }
         });
-    }
+        myChart.on('mouseout', function() {
+            tooltip.style.display = 'none';
+        });
+        document.getElementById('map-container').addEventListener('mousemove', function(e) {
+            tooltip.style.left = (e.clientX + 14) + 'px';
+            tooltip.style.top = (e.clientY - 30) + 'px';
+        });
 
-    function toggleVisit(name) {
-        var list = visitedData[currentMode];
-        var index = list.indexOf(name);
-        
-        if (index > -1) {
-            list.splice(index, 1); // 再次点击，取消
-        } else {
-            list.push(name); // 首次点击，添加
-        }
-        
-        // 保存并刷新
-        localStorage.setItem('my_footprint_v5', JSON.stringify(visitedData));
-        initMap(currentMode);
+        myChart.on('click', function(params) {
+            if (!params.name) return;
+            var name = params.name;
+            var isVisited = visitedData[currentMode].indexOf(name) > -1;
+
+            if (isVisited) {
+                // Show memories
+                openMemoryViewer(name);
+            } else {
+                // Mark as visited then open upload
+                visitedData[currentMode].push(name);
+                save();
+                initMap(currentMode);
+                setTimeout(function() { openUpload(name); }, 100);
+            }
+        });
     }
 
     function updateCount() {
         document.getElementById('count').innerText = visitedData[currentMode].length;
     }
-    
+
     function clearData() {
-        if(confirm('确定清空所有记录？')) {
+        if (confirm('确定清空当前视图的所有记录？')) {
+            // Also remove memories
+            visitedData[currentMode].forEach(function(name) {
+                delete memoriesData[getMemoryKey(currentMode, name)];
+            });
             visitedData[currentMode] = [];
-            localStorage.setItem('my_footprint_v5', JSON.stringify(visitedData));
+            save();
             initMap(currentMode);
         }
     }
 
     function saveMapImage() {
-        var url = myChart.getDataURL({
-            type: 'png',
-            pixelRatio: 2, // 高清
-            backgroundColor: '#fff',
-            excludeComponents: ['toolbox']
-        });
+        var url = myChart.getDataURL({ type: 'png', pixelRatio: 2, backgroundColor: '#F0F5FA' });
         var a = document.createElement('a');
         a.download = '我的足迹_' + currentMode + '.png';
         a.href = url;
@@ -197,8 +664,238 @@
         document.body.removeChild(a);
     }
 
+    // ── UPLOAD MODAL ──
+    function openUpload(regionName) {
+        currentRegion = regionName;
+        pendingPhotos = [];
+        document.getElementById('uploadRegionName').textContent = regionName;
+        document.getElementById('travelDate').value = getTodayStr();
+        document.getElementById('travelNote').value = '';
+        updateCharCount();
+        renderPhotoGrid();
+        document.getElementById('uploadOverlay').classList.add('active');
+    }
+
+    function openUploadFromMemory() {
+        closeMemory();
+        setTimeout(function() { openUpload(currentRegion); }, 150);
+    }
+
+    function closeUpload() {
+        document.getElementById('uploadOverlay').classList.remove('active');
+        pendingPhotos = [];
+    }
+
+    function getTodayStr() {
+        var d = new Date();
+        var mm = String(d.getMonth() + 1).padStart(2, '0');
+        var dd = String(d.getDate()).padStart(2, '0');
+        return d.getFullYear() + '-' + mm + '-' + dd;
+    }
+
+    function renderPhotoGrid() {
+        var grid = document.getElementById('photoGrid');
+        grid.innerHTML = '';
+        for (var i = 0; i < 9; i++) {
+            var slot = document.createElement('div');
+            slot.className = 'photo-slot' + (i < pendingPhotos.length ? ' filled' : '');
+            if (i < pendingPhotos.length) {
+                var img = document.createElement('img');
+                img.src = pendingPhotos[i];
+                slot.appendChild(img);
+                var rmBtn = document.createElement('button');
+                rmBtn.className = 'remove-photo';
+                rmBtn.innerHTML = '✕';
+                var idx = i;
+                rmBtn.onclick = function(e) { e.stopPropagation(); removePhoto(idx); };
+                slot.appendChild(rmBtn);
+            } else if (i === pendingPhotos.length) {
+                var icon = document.createElement('span');
+                icon.className = 'add-icon';
+                icon.innerHTML = '＋';
+                slot.appendChild(icon);
+                slot.onclick = function() { document.getElementById('photoInput').click(); };
+            } else {
+                slot.style.opacity = '0.3';
+                slot.style.pointerEvents = 'none';
+            }
+            grid.appendChild(slot);
+        }
+    }
+
+    function removePhoto(idx) {
+        pendingPhotos.splice(idx, 1);
+        renderPhotoGrid();
+    }
+
+    function handlePhotoSelect(e) {
+        var files = Array.from(e.target.files);
+        var remaining = 9 - pendingPhotos.length;
+        files = files.slice(0, remaining);
+
+        var processed = 0;
+        files.forEach(function(file) {
+            if (file.size > 5 * 1024 * 1024) {
+                alert(file.name + ' 超过 5MB 限制，已跳过。');
+                processed++;
+                if (processed === files.length) renderPhotoGrid();
+                return;
+            }
+            var reader = new FileReader();
+            reader.onload = function(ev) {
+                pendingPhotos.push(ev.target.result);
+                processed++;
+                if (processed === files.length) renderPhotoGrid();
+            };
+            reader.readAsDataURL(file);
+        });
+        e.target.value = '';
+    }
+
+    function updateCharCount() {
+        var val = document.getElementById('travelNote').value;
+        document.getElementById('charCount').textContent = val.length;
+    }
+
+    function insertEmoji(em) {
+        var ta = document.getElementById('travelNote');
+        var cur = ta.selectionStart;
+        var text = ta.value;
+        if (text.length >= 100) return;
+        ta.value = text.slice(0, cur) + em + text.slice(cur);
+        ta.selectionStart = ta.selectionEnd = cur + em.length;
+        updateCharCount();
+        ta.focus();
+    }
+
+    function saveMemory() {
+        if (pendingPhotos.length === 0) { alert('请至少上传一张旅行照片~'); return; }
+        var date = document.getElementById('travelDate').value;
+        if (!date) { alert('请选择旅行时间~'); return; }
+
+        var key = getMemoryKey(currentMode, currentRegion);
+        if (!memoriesData[key]) memoriesData[key] = [];
+
+        memoriesData[key].push({
+            date: date,
+            photos: pendingPhotos.slice(),
+            note: document.getElementById('travelNote').value.trim()
+        });
+
+        // Sort by date descending
+        memoriesData[key].sort(function(a, b) { return b.date.localeCompare(a.date); });
+
+        save();
+        closeUpload();
+        // Show the memories
+        setTimeout(function() { openMemoryViewer(currentRegion); }, 200);
+    }
+
+    // ── MEMORY VIEWER ──
+    function openMemoryViewer(regionName) {
+        currentRegion = regionName;
+        var key = getMemoryKey(currentMode, regionName);
+        var mems = memoriesData[key] || [];
+
+        document.getElementById('memoryRegionTitle').textContent = '📍 ' + regionName;
+        document.getElementById('memoryCount').textContent = mems.length + ' 段旅行回忆';
+
+        var list = document.getElementById('memoriesList');
+        list.innerHTML = '';
+
+        if (mems.length === 0) {
+            list.innerHTML = '<div class="empty-state"><div class="empty-icon">📷</div><p>还没有回忆，点击下方按钮添加吧~</p></div>';
+        } else {
+            mems.forEach(function(mem, idx) {
+                var card = document.createElement('div');
+                card.className = 'memory-card';
+
+                var dateStr = mem.date.replace(/-/g, ' · ');
+
+                var photosHtml = '';
+                if (mem.photos && mem.photos.length > 0) {
+                    photosHtml = '<div class="memory-photos">';
+                    mem.photos.forEach(function(src, pi) {
+                        photosHtml += '<img src="' + src + '" onclick="openLightbox(\'' + src.replace(/'/g, "\\'") + '\')">';
+                    });
+                    photosHtml += '</div>';
+                }
+
+                var noteHtml = mem.note ? '<div class="memory-note">' + escapeHtml(mem.note) + '</div>' : '';
+
+                card.innerHTML =
+                    '<div class="memory-card-header">' +
+                        '<div class="memory-date">' + dateStr + '</div>' +
+                        '<div class="memory-actions">' +
+                            '<button class="memory-action-btn del" onclick="deleteMemory(\'' + escapeHtml(currentMode) + '\',\'' + escapeHtml(regionName) + '\',' + idx + ')">删除</button>' +
+                        '</div>' +
+                    '</div>' +
+                    photosHtml +
+                    noteHtml;
+
+                list.appendChild(card);
+            });
+        }
+
+        document.getElementById('memoryOverlay').classList.add('active');
+    }
+
+    function closeMemory() {
+        document.getElementById('memoryOverlay').classList.remove('active');
+    }
+
+    function deleteMemory(mode, region, idx) {
+        if (!confirm('确定删除这段回忆吗？')) return;
+        var key = getMemoryKey(mode, region);
+        if (memoriesData[key]) {
+            memoriesData[key].splice(idx, 1);
+            if (memoriesData[key].length === 0) {
+                delete memoriesData[key];
+                // Remove from visited if no memories? Keep visited.
+            }
+            save();
+            openMemoryViewer(region);
+        }
+    }
+
+    function escapeHtml(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    // ── LIGHTBOX ──
+    function openLightbox(src) {
+        document.getElementById('lightboxImg').src = src;
+        document.getElementById('lightbox').classList.add('active');
+    }
+    function closeLightbox() {
+        document.getElementById('lightbox').classList.remove('active');
+    }
+
+    // Close overlays on backdrop click
+    document.getElementById('uploadOverlay').addEventListener('click', function(e) {
+        if (e.target === this) closeUpload();
+    });
+    document.getElementById('memoryOverlay').addEventListener('click', function(e) {
+        if (e.target === this) closeMemory();
+    });
+
+    // Keyboard ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeLightbox();
+            closeUpload();
+            closeMemory();
+        }
+    });
+
     window.onresize = function() { myChart.resize(); };
+
+    // Start
+    initMap('china');
 </script>
 </body>
 </html>
-
