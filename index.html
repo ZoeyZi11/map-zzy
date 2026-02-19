@@ -2,8 +2,8 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>旅行口袋</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>我的旅行足迹</title>
     <script src="https://assets.pyecharts.org/assets/echarts.min.js"></script>
     <script src="https://assets.pyecharts.org/assets/maps/china.js"></script>
     <script src="https://assets.pyecharts.org/assets/maps/world.js"></script>
@@ -12,199 +12,217 @@
         :root {
             --bg: #F0F5FA;
             --bg-card: #FFFFFF;
-            --accent-blue: #DDEEFF;
-            --accent-coral: #DDEEFF;
-            --coral-dark: #3A87C8;
-            --coral-med: #7BB8E8;
+            --accent: #DDEEFF;
+            --blue: #3A87C8;
+            --blue-light: #7BB8E8;
+            --blue-hover: #2E70AA;
             --text-primary: #1E2D3D;
             --text-secondary: #607D8B;
             --text-light: #B0BEC5;
             --border: #E0EAF2;
             --shadow: rgba(30,80,140,0.07);
-            --shadow-deep: rgba(30,80,140,0.15);
-            --lit-color: #3A87C8;
-            --unlit-color: #EEEEEE;
-            --hover-color: #C9E4F8;
-            --border-color: #C5D9E8;
+            --header-h: 56px;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
         body {
             font-family: 'Noto Sans SC', sans-serif;
             background: var(--bg);
             color: var(--text-primary);
             height: 100vh;
+            height: 100dvh;
             overflow: hidden;
             display: flex;
             flex-direction: column;
         }
 
-        /* ── Header ── */
+        /* ═══ HEADER ═══ */
         .header {
             background: var(--bg-card);
-            padding: 12px 24px;
+            height: var(--header-h);
+            padding: 0 12px;
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            gap: 8px;
             border-bottom: 1px solid var(--border);
-            box-shadow: 0 2px 12px var(--shadow);
+            box-shadow: 0 2px 8px var(--shadow);
             flex-shrink: 0;
             z-index: 10;
         }
 
-        .header-left { display: flex; align-items: center; gap: 16px; }
-
         .logo {
             font-family: 'Noto Serif SC', serif;
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 600;
             color: var(--text-primary);
-            letter-spacing: 2px;
+            letter-spacing: 1px;
+            flex-shrink: 0;
         }
-        .logo span { color: var(--coral-dark); /* now blue */ }
+        .logo span { color: var(--blue); }
+
+        .divider {
+            width: 1px; height: 20px;
+            background: var(--border);
+            flex-shrink: 0;
+        }
 
         .tab-switch {
             display: flex;
             background: var(--bg);
-            border-radius: 20px;
+            border-radius: 16px;
             padding: 3px;
             gap: 2px;
+            flex-shrink: 0;
         }
         .tab-switch button {
-            padding: 6px 18px;
+            padding: 4px 12px;
             border: none;
             background: transparent;
-            border-radius: 18px;
-            font-size: 13px;
+            border-radius: 13px;
+            font-size: 12px;
             font-family: 'Noto Sans SC', sans-serif;
             cursor: pointer;
             color: var(--text-secondary);
-            transition: all 0.25s;
+            transition: all 0.2s;
+            white-space: nowrap;
         }
         .tab-switch button.active {
             background: var(--bg-card);
-            color: #3A87C8;
-            box-shadow: 0 1px 6px var(--shadow);
+            color: var(--blue);
+            box-shadow: 0 1px 4px var(--shadow);
             font-weight: 500;
         }
 
-        .header-right { display: flex; align-items: center; gap: 16px; }
+        .header-spacer { flex: 1; min-width: 4px; }
 
         .stat-pill {
-            background: #DDEEFF;
-            border-radius: 20px;
-            padding: 5px 14px;
-            font-size: 13px;
-            color: #3A87C8;
+            background: var(--accent);
+            border-radius: 14px;
+            padding: 4px 10px;
+            font-size: 12px;
+            color: var(--blue);
             font-weight: 500;
+            flex-shrink: 0;
+            white-space: nowrap;
         }
-        .stat-pill strong { font-size: 16px; }
+        .stat-pill strong { font-size: 14px; }
 
-        .btn {
-            padding: 7px 16px;
+        .header-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+        .icon-btn {
+            width: 32px; height: 32px;
             border-radius: 8px;
-            border: none;
-            font-size: 13px;
-            font-family: 'Noto Sans SC', sans-serif;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .btn-ghost {
-            background: transparent;
-            color: var(--text-secondary);
             border: 1px solid var(--border);
+            background: var(--bg-card);
+            cursor: pointer;
+            font-size: 15px;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--text-secondary);
+            transition: 0.2s;
+            flex-shrink: 0;
         }
-        .btn-ghost:hover { background: var(--bg); }
-        .btn-primary {
-            background: var(--coral-dark);
-            color: #fff;
-        }
-        .btn-primary:hover { background: #E64A19; }
+        .icon-btn:hover { background: var(--bg); }
+        .icon-btn.primary { background: var(--blue); color: #fff; border-color: var(--blue); }
+        .icon-btn.primary:hover { background: var(--blue-hover); }
 
-        /* ── Map ── */
-        #map-container {
-            flex: 1;
-            width: 100%;
-        }
+        /* ═══ MAP ═══ */
+        #map-container { flex: 1; width: 100%; min-height: 0; }
 
-        /* ── Overlay backdrop ── */
+        /* ═══ OVERLAY ═══ */
         .overlay {
             display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.4);
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.45);
             backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
             z-index: 100;
-            animation: fadeIn 0.2s ease;
         }
-        .overlay.active { display: flex; align-items: center; justify-content: center; }
+        .overlay.active { display: flex; align-items: flex-end; justify-content: center; }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @media (min-width: 600px) {
+            .overlay.active { align-items: center; }
+        }
 
-        /* ── Modal Base ── */
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ═══ MODAL ═══ */
         .modal {
             background: var(--bg-card);
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-            width: 90%;
-            max-width: 560px;
-            max-height: 90vh;
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 -8px 40px rgba(0,0,0,0.15);
+            width: 100%;
+            max-height: 92vh;
+            max-height: 92dvh;
             overflow-y: auto;
-            animation: slideUp 0.3s ease;
+            -webkit-overflow-scrolling: touch;
+            animation: slideUp 0.3s cubic-bezier(0.34,1.1,0.64,1);
         }
 
+        @media (min-width: 600px) {
+            .modal {
+                border-radius: 16px;
+                width: 90%;
+                max-width: 540px;
+                max-height: 88vh;
+            }
+            .memory-modal { max-width: 620px; }
+        }
+
+        /* 拖拽条 */
+        .drag-handle {
+            width: 36px; height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin: 10px auto 0;
+        }
+        @media (min-width: 600px) { .drag-handle { display: none; } }
+
         .modal-header {
-            padding: 20px 24px 16px;
+            padding: 16px 20px 14px;
             border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            position: sticky;
-            top: 0;
+            position: sticky; top: 0;
             background: var(--bg-card);
             z-index: 1;
         }
         .modal-title {
             font-family: 'Noto Serif SC', serif;
-            font-size: 18px;
-            font-weight: 600;
+            font-size: 17px; font-weight: 600;
         }
         .modal-subtitle { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+
         .close-btn {
-            width: 30px; height: 30px;
+            width: 28px; height: 28px;
             border: none; background: var(--bg);
-            border-radius: 50%;
-            font-size: 16px;
+            border-radius: 50%; font-size: 14px;
             cursor: pointer;
             display: flex; align-items: center; justify-content: center;
-            color: var(--text-secondary);
-            transition: 0.2s;
+            color: var(--text-secondary); transition: 0.2s; flex-shrink: 0;
         }
         .close-btn:hover { background: var(--border); }
 
-        .modal-body { padding: 20px 24px; }
+        .modal-body { padding: 16px 20px; }
 
-        /* ── Upload form ── */
-        .form-section { margin-bottom: 20px; }
+        /* ═══ FORM ═══ */
+        .form-section { margin-bottom: 18px; }
         .form-label {
-            font-size: 13px;
-            font-weight: 500;
+            font-size: 13px; font-weight: 500;
             color: var(--text-primary);
             margin-bottom: 8px;
-            display: block;
+            display: flex; align-items: center; gap: 4px;
         }
         .required-dot {
-            display: inline-block;
-            width: 6px; height: 6px;
-            background: #3A87C8;
-            border-radius: 50%;
-            margin-left: 4px;
-            vertical-align: middle;
+            width: 5px; height: 5px;
+            background: var(--blue); border-radius: 50%;
+            display: inline-block; flex-shrink: 0;
         }
 
-        /* Photo upload zone */
         .photo-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -214,271 +232,182 @@
             aspect-ratio: 1;
             border-radius: 10px;
             border: 1.5px dashed var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            overflow: hidden;
-            position: relative;
-            background: var(--bg);
-            transition: 0.2s;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; overflow: hidden; position: relative;
+            background: var(--bg); transition: 0.2s;
         }
-        .photo-slot:hover { border-color: #3A87C8; background: #DDEEFF; }
+        .photo-slot:active { background: var(--accent); }
         .photo-slot.filled { border-style: solid; border-color: var(--border); }
-        .photo-slot img {
-            width: 100%; height: 100%;
-            object-fit: cover;
-        }
-        .photo-slot .add-icon {
-            font-size: 22px;
-            color: var(--text-light);
-        }
+        .photo-slot img { width: 100%; height: 100%; object-fit: cover; }
+        .photo-slot .add-icon { font-size: 22px; color: var(--text-light); }
         .photo-slot .remove-photo {
-            position: absolute;
-            top: 4px; right: 4px;
-            width: 20px; height: 20px;
-            background: rgba(0,0,0,0.5);
-            border-radius: 50%;
-            border: none;
-            color: white;
-            font-size: 11px;
-            cursor: pointer;
-            display: none;
-            align-items: center; justify-content: center;
+            position: absolute; top: 4px; right: 4px;
+            width: 22px; height: 22px;
+            background: rgba(0,0,0,0.55); border-radius: 50%;
+            border: none; color: white; font-size: 11px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
         }
-        .photo-slot:hover .remove-photo { display: flex; }
         .photo-hint { font-size: 11px; color: var(--text-light); margin-top: 6px; }
 
-        /* Date input */
         .date-input {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1.5px solid var(--border);
-            border-radius: 8px;
-            font-size: 14px;
-            font-family: 'Noto Sans SC', sans-serif;
-            color: var(--text-primary);
-            background: var(--bg);
-            outline: none;
-            transition: 0.2s;
+            width: 100%; padding: 11px 12px;
+            border: 1.5px solid var(--border); border-radius: 10px;
+            font-size: 15px; font-family: 'Noto Sans SC', sans-serif;
+            color: var(--text-primary); background: var(--bg);
+            outline: none; transition: 0.2s; -webkit-appearance: none;
         }
-        .date-input:focus { border-color: #3A87C8; background: #fff; }
+        .date-input:focus { border-color: var(--blue); background: #fff; }
 
-        /* Notes textarea */
         .notes-textarea {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1.5px solid var(--border);
-            border-radius: 8px;
-            font-size: 14px;
-            font-family: 'Noto Sans SC', sans-serif;
-            color: var(--text-primary);
-            background: var(--bg);
-            outline: none;
-            resize: none;
-            height: 80px;
-            transition: 0.2s;
+            width: 100%; padding: 11px 12px;
+            border: 1.5px solid var(--border); border-radius: 10px;
+            font-size: 14px; font-family: 'Noto Sans SC', sans-serif;
+            color: var(--text-primary); background: var(--bg);
+            outline: none; resize: none; height: 80px; transition: 0.2s;
         }
-        .notes-textarea:focus { border-color: #3A87C8; background: #fff; }
+        .notes-textarea:focus { border-color: var(--blue); background: #fff; }
         .char-count { font-size: 11px; color: var(--text-light); text-align: right; margin-top: 4px; }
 
-        .emoji-picker { margin-top: 6px; display: flex; gap: 6px; flex-wrap: wrap; }
+        .emoji-picker { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+        .emoji-label { font-size: 11px; color: var(--text-light); }
         .emoji-btn {
-            width: 30px; height: 30px;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 16px;
+            width: 32px; height: 32px;
+            background: var(--bg); border: 1px solid var(--border);
+            border-radius: 8px; cursor: pointer; font-size: 17px;
             display: flex; align-items: center; justify-content: center;
-            transition: 0.15s;
         }
-        .emoji-btn:hover { background: #DDEEFF; border-color: #7BB8E8; }
+        .emoji-btn:active { background: var(--accent); }
 
         .modal-footer {
-            padding: 16px 24px;
+            padding: 12px 20px 20px;
             border-top: 1px solid var(--border);
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
+            display: flex; gap: 10px;
         }
+        .modal-footer .btn { flex: 1; }
 
-        /* ── Memory viewer ── */
-        .memory-modal { max-width: 640px; }
-
-        .memory-tabs {
-            display: flex;
-            gap: 0;
-            border-bottom: 1px solid var(--border);
-            margin: -1px 0 0;
+        .btn {
+            padding: 12px 16px; border-radius: 10px; border: none;
+            font-size: 14px; font-family: 'Noto Sans SC', sans-serif;
+            cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 500;
         }
-        /* tab items inside modal header area */
+        .btn-ghost { background: var(--bg); color: var(--text-secondary); border: 1px solid var(--border); }
+        .btn-primary { background: var(--blue); color: #fff; }
+        .btn-primary:active { background: var(--blue-hover); }
 
-        .memories-list { display: flex; flex-direction: column; gap: 16px; }
+        /* ═══ MEMORY CARDS ═══ */
+        .memories-list { display: flex; flex-direction: column; gap: 14px; }
 
-        .memory-card {
-            background: var(--bg);
-            border-radius: 12px;
-            padding: 16px;
-            position: relative;
-        }
+        .memory-card { background: var(--bg); border-radius: 12px; padding: 14px; }
         .memory-card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 10px;
+            display: flex; align-items: center;
+            justify-content: space-between; margin-bottom: 10px;
         }
         .memory-date {
-            font-size: 12px;
-            color: #3A87C8;
-            font-weight: 500;
-            background: #DDEEFF;
-            padding: 3px 10px;
-            border-radius: 10px;
+            font-size: 12px; color: var(--blue); font-weight: 500;
+            background: var(--accent); padding: 3px 10px; border-radius: 10px;
         }
-        .memory-actions { display: flex; gap: 6px; }
         .memory-action-btn {
-            padding: 4px 10px;
-            font-size: 11px;
-            border-radius: 6px;
-            border: 1px solid var(--border);
-            background: var(--bg-card);
-            cursor: pointer;
-            color: var(--text-secondary);
-            transition: 0.15s;
+            padding: 4px 12px; font-size: 12px; border-radius: 6px;
+            border: 1px solid var(--border); background: var(--bg-card);
+            cursor: pointer; color: var(--text-secondary);
         }
-        .memory-action-btn:hover { background: var(--border); }
-        .memory-action-btn.del:hover { background: #FFEBEE; color: #d32f2f; border-color: #FFCDD2; }
+        .memory-action-btn.del:active { background: #FFEBEE; color: #d32f2f; }
 
         .memory-photos {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
-            margin-bottom: 10px;
+            display: grid; grid-template-columns: repeat(3,1fr);
+            gap: 6px; margin-bottom: 10px;
         }
         .memory-photos img {
-            width: 100%;
-            aspect-ratio: 1;
-            object-fit: cover;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: 0.2s;
+            width: 100%; aspect-ratio: 1; object-fit: cover;
+            border-radius: 8px; cursor: pointer;
         }
-        .memory-photos img:hover { opacity: 0.85; }
+        .memory-note { font-size: 13px; color: var(--text-secondary); line-height: 1.7; }
 
-        .memory-note {
-            font-size: 13px;
-            color: var(--text-secondary);
-            line-height: 1.6;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: var(--text-light);
-        }
-        .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
+        .empty-state { text-align: center; padding: 36px 20px; color: var(--text-light); }
+        .empty-state .empty-icon { font-size: 44px; margin-bottom: 10px; }
         .empty-state p { font-size: 14px; }
 
-        /* ── Lightbox ── */
+        .add-memory-bar { padding: 0 20px 20px; }
+        .add-memory-bar .btn { width: 100%; }
+
+        /* ═══ LIGHTBOX ═══ */
         .lightbox {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.9);
-            z-index: 200;
-            align-items: center;
-            justify-content: center;
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.92); z-index: 200;
+            align-items: center; justify-content: center;
         }
         .lightbox.active { display: flex; }
-        .lightbox img {
-            max-width: 90vw;
-            max-height: 90vh;
-            border-radius: 4px;
-            object-fit: contain;
-        }
-        .lightbox-close {
-            position: fixed;
-            top: 20px; right: 24px;
-            color: white;
-            font-size: 30px;
-            cursor: pointer;
-            line-height: 1;
-        }
+        .lightbox img { max-width: 96vw; max-height: 90vh; border-radius: 4px; object-fit: contain; }
+        .lightbox-close { position: fixed; top: 16px; right: 20px; color: white; font-size: 28px; cursor: pointer; padding: 6px; }
 
-        /* ── Tooltip region name (map hover) ── */
+        /* ═══ TOOLTIP ═══ */
         .region-tooltip {
             position: fixed;
-            background: rgba(44,44,44,0.85);
-            color: #fff;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            pointer-events: none;
-            z-index: 50;
-            display: none;
+            background: rgba(30,45,61,0.88); color: #fff;
+            padding: 5px 12px; border-radius: 20px; font-size: 12px;
+            pointer-events: none; z-index: 50; display: none;
             backdrop-filter: blur(4px);
         }
-
-        /* Add memory button floating */
-        .add-memory-bar {
-            padding: 0 24px 20px;
-            text-align: center;
+        @media (max-width: 599px) {
+            .region-tooltip {
+                left: 50% !important;
+                top: calc(var(--header-h) + 10px) !important;
+                transform: translateX(-50%);
+                font-size: 13px; padding: 6px 16px;
+            }
         }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <div class="header-left">
-        <div class="logo">旅行<span>口袋</span></div>
-        <div class="tab-switch">
-            <button id="btn-china" class="active" onclick="initMap('china')">🇨🇳 国内</button>
-            <button id="btn-world" onclick="initMap('world')">🌏 世界</button>
-        </div>
+    <div class="logo">足<span>迹</span></div>
+    <div class="divider"></div>
+    <div class="tab-switch">
+        <button id="btn-china" class="active" onclick="initMap('china')">🇨🇳 国内</button>
+        <button id="btn-world" onclick="initMap('world')">🌏 世界</button>
     </div>
-    <div class="header-right">
-        <div class="stat-pill">已点亮 <strong id="count">0</strong> 处</div>
-        <button class="btn btn-ghost" onclick="clearData()">清空</button>
-        <button class="btn btn-primary" onclick="saveMapImage()">📷 保存图片</button>
+    <div class="header-spacer"></div>
+    <div class="stat-pill">已点亮 <strong id="count">0</strong> 处</div>
+    <div class="header-actions">
+        <button class="icon-btn" onclick="clearData()" title="清空">🗑</button>
+        <button class="icon-btn primary" onclick="saveMapImage()" title="保存图片">📷</button>
     </div>
 </div>
 
 <div id="map-container"></div>
-
-<!-- Region Tooltip -->
 <div class="region-tooltip" id="regionTooltip"></div>
 
-<!-- ── Upload Modal ── -->
+<!-- 添加回忆 -->
 <div class="overlay" id="uploadOverlay">
     <div class="modal">
+        <div class="drag-handle"></div>
         <div class="modal-header">
             <div>
                 <div class="modal-title">✈️ 添加旅行回忆</div>
-                <div class="modal-subtitle" id="uploadRegionName">选择区域</div>
+                <div class="modal-subtitle" id="uploadRegionName"></div>
             </div>
             <button class="close-btn" onclick="closeUpload()">✕</button>
         </div>
         <div class="modal-body">
-            <!-- Photos -->
             <div class="form-section">
-                <label class="form-label">旅行照片<span class="required-dot"></span></label>
+                <div class="form-label">旅行照片 <span class="required-dot"></span></div>
                 <div class="photo-grid" id="photoGrid"></div>
-                <div class="photo-hint">支持 JPG/PNG，单张不超过 5MB，最多 9 张</div>
+                <div class="photo-hint">支持 JPG/PNG，单张 ≤ 5MB，最多 9 张</div>
                 <input type="file" id="photoInput" accept="image/jpeg,image/png" multiple style="display:none" onchange="handlePhotoSelect(event)">
             </div>
-            <!-- Date -->
             <div class="form-section">
-                <label class="form-label">旅行时间<span class="required-dot"></span></label>
+                <div class="form-label">旅行时间 <span class="required-dot"></span></div>
                 <input type="date" class="date-input" id="travelDate">
             </div>
-            <!-- Notes -->
             <div class="form-section">
-                <label class="form-label">旅行备注 <span style="color:var(--text-light);font-weight:400">（选填）</span></label>
+                <div class="form-label">旅行备注 <span style="color:var(--text-light);font-weight:400;font-size:12px">（选填，100字内）</span></div>
                 <textarea class="notes-textarea" id="travelNote" placeholder="记录旅途中的故事..." maxlength="100" oninput="updateCharCount()"></textarea>
-                <div class="char-count"><span id="charCount">0</span>/100</div>
+                <div class="char-count"><span id="charCount">0</span> / 100</div>
                 <div class="emoji-picker">
-                    <span style="font-size:11px;color:var(--text-light);align-self:center">快速插入：</span>
+                    <span class="emoji-label">快速插入：</span>
                     <button class="emoji-btn" onclick="insertEmoji('❤️')">❤️</button>
                     <button class="emoji-btn" onclick="insertEmoji('🌟')">🌟</button>
                     <button class="emoji-btn" onclick="insertEmoji('🎉')">🎉</button>
@@ -497,13 +426,14 @@
     </div>
 </div>
 
-<!-- ── Memory Viewer Modal ── -->
+<!-- 回忆展示 -->
 <div class="overlay" id="memoryOverlay">
     <div class="modal memory-modal">
+        <div class="drag-handle"></div>
         <div class="modal-header">
             <div>
                 <div class="modal-title" id="memoryRegionTitle">旅行回忆</div>
-                <div class="modal-subtitle" id="memoryCount">0 段回忆</div>
+                <div class="modal-subtitle" id="memoryCount"></div>
             </div>
             <button class="close-btn" onclick="closeMemory()">✕</button>
         </div>
@@ -516,7 +446,7 @@
     </div>
 </div>
 
-<!-- ── Lightbox ── -->
+<!-- Lightbox -->
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
     <span class="lightbox-close">✕</span>
     <img id="lightboxImg" src="" alt="">
@@ -524,13 +454,8 @@
 
 <script>
     var myChart = echarts.init(document.getElementById('map-container'));
-    var currentMode = 'china';
-    var currentRegion = '';
-    var pendingPhotos = []; // base64 strings during upload session
-
-    // Data store
-    var visitedData = { china: [], world: [] };
-    var memoriesData = {}; // key: "mode|regionName" => [{date, photos:[], note}]
+    var currentMode = 'china', currentRegion = '', pendingPhotos = [];
+    var visitedData = { china: [], world: [] }, memoriesData = {};
 
     try {
         var s1 = localStorage.getItem('footprint_visited_v6');
@@ -543,96 +468,71 @@
         try {
             localStorage.setItem('footprint_visited_v6', JSON.stringify(visitedData));
             localStorage.setItem('footprint_memories_v6', JSON.stringify(memoriesData));
-        } catch(e) {
-            alert('存储空间不足，请清理部分照片后重试。');
-        }
+        } catch(e) { alert('存储空间不足，请清理部分照片后重试。'); }
     }
 
-    function getMemoryKey(mode, region) { return mode + '|' + region; }
+    function memKey(mode, region) { return mode + '|' + region; }
 
     // ── MAP ──
     function initMap(mapType) {
         currentMode = mapType;
         document.getElementById('btn-china').className = mapType === 'china' ? 'active' : '';
-        document.getElementById('btn-world').className = mapType === 'world' ? 'active' : '';
+        document.getElementById('btn-world').className  = mapType === 'world'  ? 'active' : '';
 
-        var dataList = visitedData[mapType].map(function(name) {
-            return { name: name, value: 1 };
-        });
+        var dataList = visitedData[mapType].map(function(n) { return { name: n, value: 1 }; });
 
-        var option = {
+        myChart.setOption({
             backgroundColor: '#F0F5FA',
             tooltip: { show: false },
             visualMap: {
-                show: false,
-                min: 0, max: 1,
+                show: false, min: 0, max: 1,
                 pieces: [{ value: 1, color: '#3A87C8' }],
                 outOfRange: { color: '#EEEEEE' }
             },
             series: [{
-                type: 'map',
-                map: mapType,
-                roam: true,
-                zoom: 1.2,
-                itemStyle: {
-                    areaColor: '#EEEEEE',
-                    borderColor: '#C5D9E8',
-                    borderWidth: 0.5
-                },
+                type: 'map', map: mapType, roam: true, zoom: 1.2,
+                itemStyle: { areaColor: '#EEEEEE', borderColor: '#C5D9E8', borderWidth: 0.5 },
                 emphasis: {
                     itemStyle: { areaColor: '#C9E4F8' },
-                    label: {
-                        show: true,
-                        color: '#2C2C2C',
-                        fontSize: 12,
-                        fontFamily: 'Noto Sans SC, sans-serif'
-                    }
+                    label: { show: true, color: '#1E2D3D', fontSize: 12, fontFamily: 'Noto Sans SC,sans-serif' }
                 },
-                select: {
-                    itemStyle: { areaColor: '#FF7043' },
-                    label: { show: false }
-                },
+                select: { itemStyle: { areaColor: '#3A87C8' }, label: { show: false } },
                 data: dataList,
                 nameMap: mapType === 'world' ? { 'United States': 'United States of America' } : {}
             }]
-        };
+        }, true);
 
-        myChart.setOption(option, true);
         updateCount();
+        myChart.off('click'); myChart.off('mouseover'); myChart.off('mouseout');
 
-        myChart.off('click');
-        myChart.off('mouseover');
-        myChart.off('mouseout');
-
-        // Hover tooltip
-        var tooltip = document.getElementById('regionTooltip');
-        myChart.on('mouseover', function(params) {
-            if (params.name) {
-                tooltip.textContent = params.name;
-                tooltip.style.display = 'block';
+        var tip = document.getElementById('regionTooltip');
+        myChart.on('mouseover', function(p) {
+            if (!p.name) return;
+            tip.textContent = p.name;
+            tip.style.display = 'block';
+            if (window.innerWidth < 600) {
+                clearTimeout(tip._t);
+                tip._t = setTimeout(function() { tip.style.display = 'none'; }, 1500);
             }
         });
         myChart.on('mouseout', function() {
-            tooltip.style.display = 'none';
+            if (window.innerWidth >= 600) tip.style.display = 'none';
         });
         document.getElementById('map-container').addEventListener('mousemove', function(e) {
-            tooltip.style.left = (e.clientX + 14) + 'px';
-            tooltip.style.top = (e.clientY - 30) + 'px';
+            if (window.innerWidth >= 600) {
+                tip.style.left = (e.clientX + 14) + 'px';
+                tip.style.top  = (e.clientY - 30) + 'px';
+            }
         });
 
         myChart.on('click', function(params) {
             if (!params.name) return;
             var name = params.name;
-            var isVisited = visitedData[currentMode].indexOf(name) > -1;
-
-            if (isVisited) {
-                // Show memories
+            if (visitedData[currentMode].indexOf(name) > -1) {
                 openMemoryViewer(name);
             } else {
-                // Mark as visited then open upload
                 visitedData[currentMode].push(name);
-                save();
-                initMap(currentMode);
+                save(); initMap(currentMode);
                 setTimeout(function() { openUpload(name); }, 100);
             }
         });
@@ -643,15 +543,10 @@
     }
 
     function clearData() {
-        if (confirm('确定清空当前视图的所有记录？')) {
-            // Also remove memories
-            visitedData[currentMode].forEach(function(name) {
-                delete memoriesData[getMemoryKey(currentMode, name)];
-            });
-            visitedData[currentMode] = [];
-            save();
-            initMap(currentMode);
-        }
+        if (!confirm('确定清空当前视图的所有记录？')) return;
+        visitedData[currentMode].forEach(function(n) { delete memoriesData[memKey(currentMode, n)]; });
+        visitedData[currentMode] = [];
+        save(); initMap(currentMode);
     }
 
     function saveMapImage() {
@@ -659,38 +554,29 @@
         var a = document.createElement('a');
         a.download = '我的足迹_' + currentMode + '.png';
         a.href = url;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
     }
 
-    // ── UPLOAD MODAL ──
+    // ── UPLOAD ──
     function openUpload(regionName) {
-        currentRegion = regionName;
-        pendingPhotos = [];
+        currentRegion = regionName; pendingPhotos = [];
         document.getElementById('uploadRegionName').textContent = regionName;
-        document.getElementById('travelDate').value = getTodayStr();
+        document.getElementById('travelDate').value = todayStr();
         document.getElementById('travelNote').value = '';
-        updateCharCount();
-        renderPhotoGrid();
+        updateCharCount(); renderPhotoGrid();
         document.getElementById('uploadOverlay').classList.add('active');
     }
-
     function openUploadFromMemory() {
         closeMemory();
-        setTimeout(function() { openUpload(currentRegion); }, 150);
+        setTimeout(function() { openUpload(currentRegion); }, 180);
     }
-
     function closeUpload() {
         document.getElementById('uploadOverlay').classList.remove('active');
         pendingPhotos = [];
     }
-
-    function getTodayStr() {
+    function todayStr() {
         var d = new Date();
-        var mm = String(d.getMonth() + 1).padStart(2, '0');
-        var dd = String(d.getDate()).padStart(2, '0');
-        return d.getFullYear() + '-' + mm + '-' + dd;
+        return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
     }
 
     function renderPhotoGrid() {
@@ -700,201 +586,123 @@
             var slot = document.createElement('div');
             slot.className = 'photo-slot' + (i < pendingPhotos.length ? ' filled' : '');
             if (i < pendingPhotos.length) {
-                var img = document.createElement('img');
-                img.src = pendingPhotos[i];
+                var img = document.createElement('img'); img.src = pendingPhotos[i];
                 slot.appendChild(img);
-                var rmBtn = document.createElement('button');
-                rmBtn.className = 'remove-photo';
-                rmBtn.innerHTML = '✕';
+                var rm = document.createElement('button'); rm.className = 'remove-photo'; rm.innerHTML = '✕';
                 var idx = i;
-                rmBtn.onclick = function(e) { e.stopPropagation(); removePhoto(idx); };
-                slot.appendChild(rmBtn);
+                rm.onclick = function(e) { e.stopPropagation(); removePhoto(idx); };
+                slot.appendChild(rm);
             } else if (i === pendingPhotos.length) {
-                var icon = document.createElement('span');
-                icon.className = 'add-icon';
-                icon.innerHTML = '＋';
+                var icon = document.createElement('span'); icon.className = 'add-icon'; icon.innerHTML = '＋';
                 slot.appendChild(icon);
                 slot.onclick = function() { document.getElementById('photoInput').click(); };
             } else {
-                slot.style.opacity = '0.3';
-                slot.style.pointerEvents = 'none';
+                slot.style.opacity = '0.25'; slot.style.pointerEvents = 'none';
             }
             grid.appendChild(slot);
         }
     }
 
-    function removePhoto(idx) {
-        pendingPhotos.splice(idx, 1);
-        renderPhotoGrid();
-    }
+    function removePhoto(idx) { pendingPhotos.splice(idx, 1); renderPhotoGrid(); }
 
     function handlePhotoSelect(e) {
-        var files = Array.from(e.target.files);
-        var remaining = 9 - pendingPhotos.length;
-        files = files.slice(0, remaining);
-
-        var processed = 0;
-        files.forEach(function(file) {
-            if (file.size > 5 * 1024 * 1024) {
-                alert(file.name + ' 超过 5MB 限制，已跳过。');
-                processed++;
-                if (processed === files.length) renderPhotoGrid();
-                return;
-            }
-            var reader = new FileReader();
-            reader.onload = function(ev) {
-                pendingPhotos.push(ev.target.result);
-                processed++;
-                if (processed === files.length) renderPhotoGrid();
-            };
-            reader.readAsDataURL(file);
+        var files = Array.from(e.target.files).slice(0, 9 - pendingPhotos.length);
+        var done = 0;
+        if (files.length === 0) return;
+        files.forEach(function(f) {
+            if (f.size > 5*1024*1024) { alert(f.name + ' 超过5MB，已跳过'); done++; if(done===files.length) renderPhotoGrid(); return; }
+            var r = new FileReader();
+            r.onload = function(ev) { pendingPhotos.push(ev.target.result); done++; if(done===files.length) renderPhotoGrid(); };
+            r.readAsDataURL(f);
         });
         e.target.value = '';
     }
 
     function updateCharCount() {
-        var val = document.getElementById('travelNote').value;
-        document.getElementById('charCount').textContent = val.length;
+        document.getElementById('charCount').textContent = document.getElementById('travelNote').value.length;
     }
 
     function insertEmoji(em) {
         var ta = document.getElementById('travelNote');
-        var cur = ta.selectionStart;
-        var text = ta.value;
-        if (text.length >= 100) return;
-        ta.value = text.slice(0, cur) + em + text.slice(cur);
-        ta.selectionStart = ta.selectionEnd = cur + em.length;
-        updateCharCount();
-        ta.focus();
+        var c = ta.selectionStart, t = ta.value;
+        if (t.length >= 100) return;
+        ta.value = t.slice(0,c) + em + t.slice(c);
+        ta.selectionStart = ta.selectionEnd = c + em.length;
+        updateCharCount(); ta.focus();
     }
 
     function saveMemory() {
         if (pendingPhotos.length === 0) { alert('请至少上传一张旅行照片~'); return; }
         var date = document.getElementById('travelDate').value;
         if (!date) { alert('请选择旅行时间~'); return; }
-
-        var key = getMemoryKey(currentMode, currentRegion);
+        var key = memKey(currentMode, currentRegion);
         if (!memoriesData[key]) memoriesData[key] = [];
-
-        memoriesData[key].push({
-            date: date,
-            photos: pendingPhotos.slice(),
-            note: document.getElementById('travelNote').value.trim()
-        });
-
-        // Sort by date descending
-        memoriesData[key].sort(function(a, b) { return b.date.localeCompare(a.date); });
-
-        save();
-        closeUpload();
-        // Show the memories
-        setTimeout(function() { openMemoryViewer(currentRegion); }, 200);
+        memoriesData[key].push({ date: date, photos: pendingPhotos.slice(), note: document.getElementById('travelNote').value.trim() });
+        memoriesData[key].sort(function(a,b) { return b.date.localeCompare(a.date); });
+        save(); closeUpload();
+        setTimeout(function() { openMemoryViewer(currentRegion); }, 220);
     }
 
     // ── MEMORY VIEWER ──
     function openMemoryViewer(regionName) {
         currentRegion = regionName;
-        var key = getMemoryKey(currentMode, regionName);
+        var key = memKey(currentMode, regionName);
         var mems = memoriesData[key] || [];
-
         document.getElementById('memoryRegionTitle').textContent = '📍 ' + regionName;
         document.getElementById('memoryCount').textContent = mems.length + ' 段旅行回忆';
-
         var list = document.getElementById('memoriesList');
         list.innerHTML = '';
-
         if (mems.length === 0) {
             list.innerHTML = '<div class="empty-state"><div class="empty-icon">📷</div><p>还没有回忆，点击下方按钮添加吧~</p></div>';
         } else {
             mems.forEach(function(mem, idx) {
-                var card = document.createElement('div');
-                card.className = 'memory-card';
-
+                var card = document.createElement('div'); card.className = 'memory-card';
                 var dateStr = mem.date.replace(/-/g, ' · ');
-
                 var photosHtml = '';
-                if (mem.photos && mem.photos.length > 0) {
+                if (mem.photos && mem.photos.length) {
                     photosHtml = '<div class="memory-photos">';
-                    mem.photos.forEach(function(src, pi) {
-                        photosHtml += '<img src="' + src + '" onclick="openLightbox(\'' + src.replace(/'/g, "\\'") + '\')">';
+                    mem.photos.forEach(function(src) {
+                        photosHtml += '<img src="' + src + '" onclick="openLightbox(\'' + src.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\')">';
                     });
                     photosHtml += '</div>';
                 }
-
-                var noteHtml = mem.note ? '<div class="memory-note">' + escapeHtml(mem.note) + '</div>' : '';
-
+                var noteHtml = mem.note ? '<div class="memory-note">' + esc(mem.note) + '</div>' : '';
                 card.innerHTML =
                     '<div class="memory-card-header">' +
                         '<div class="memory-date">' + dateStr + '</div>' +
-                        '<div class="memory-actions">' +
-                            '<button class="memory-action-btn del" onclick="deleteMemory(\'' + escapeHtml(currentMode) + '\',\'' + escapeHtml(regionName) + '\',' + idx + ')">删除</button>' +
-                        '</div>' +
-                    '</div>' +
-                    photosHtml +
-                    noteHtml;
-
+                        '<button class="memory-action-btn del" onclick="deleteMemory(\'' + esc(currentMode) + '\',\'' + esc(regionName) + '\',' + idx + ')">删除</button>' +
+                    '</div>' + photosHtml + noteHtml;
                 list.appendChild(card);
             });
         }
-
         document.getElementById('memoryOverlay').classList.add('active');
     }
 
-    function closeMemory() {
-        document.getElementById('memoryOverlay').classList.remove('active');
-    }
+    function closeMemory() { document.getElementById('memoryOverlay').classList.remove('active'); }
 
     function deleteMemory(mode, region, idx) {
         if (!confirm('确定删除这段回忆吗？')) return;
-        var key = getMemoryKey(mode, region);
+        var key = memKey(mode, region);
         if (memoriesData[key]) {
             memoriesData[key].splice(idx, 1);
-            if (memoriesData[key].length === 0) {
-                delete memoriesData[key];
-                // Remove from visited if no memories? Keep visited.
-            }
-            save();
-            openMemoryViewer(region);
+            if (!memoriesData[key].length) delete memoriesData[key];
+            save(); openMemoryViewer(region);
         }
     }
 
-    function escapeHtml(str) {
-        return String(str)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;');
+    function esc(s) {
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
     // ── LIGHTBOX ──
-    function openLightbox(src) {
-        document.getElementById('lightboxImg').src = src;
-        document.getElementById('lightbox').classList.add('active');
-    }
-    function closeLightbox() {
-        document.getElementById('lightbox').classList.remove('active');
-    }
+    function openLightbox(src) { document.getElementById('lightboxImg').src = src; document.getElementById('lightbox').classList.add('active'); }
+    function closeLightbox() { document.getElementById('lightbox').classList.remove('active'); }
 
-    // Close overlays on backdrop click
-    document.getElementById('uploadOverlay').addEventListener('click', function(e) {
-        if (e.target === this) closeUpload();
-    });
-    document.getElementById('memoryOverlay').addEventListener('click', function(e) {
-        if (e.target === this) closeMemory();
-    });
+    document.getElementById('uploadOverlay').addEventListener('click', function(e) { if(e.target===this) closeUpload(); });
+    document.getElementById('memoryOverlay').addEventListener('click', function(e) { if(e.target===this) closeMemory(); });
+    document.addEventListener('keydown', function(e) { if(e.key==='Escape') { closeLightbox(); closeUpload(); closeMemory(); } });
+    window.addEventListener('resize', function() { myChart.resize(); });
 
-    // Keyboard ESC
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            closeLightbox();
-            closeUpload();
-            closeMemory();
-        }
-    });
-
-    window.onresize = function() { myChart.resize(); };
-
-    // Start
     initMap('china');
 </script>
 </body>
