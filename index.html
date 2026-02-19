@@ -21,7 +21,7 @@
             --text-light: #B0BEC5;
             --border: #E0EAF2;
             --shadow: rgba(30,80,140,0.07);
-            --header-h: 56px;
+            --header-h: 52px;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -41,28 +41,30 @@
         .header {
             background: var(--bg-card);
             height: var(--header-h);
-            padding: 0 12px;
+            padding: 0 10px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             border-bottom: 1px solid var(--border);
             box-shadow: 0 2px 8px var(--shadow);
             flex-shrink: 0;
             z-index: 10;
+            overflow: hidden; /* 防止超出 */
         }
 
         .logo {
             font-family: 'Noto Serif SC', serif;
-            font-size: 18px;
+            font-size: 15px;          /* 从18px缩到15px */
             font-weight: 600;
             color: var(--text-primary);
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
             flex-shrink: 0;
+            white-space: nowrap;
         }
         .logo span { color: var(--blue); }
 
         .divider {
-            width: 1px; height: 20px;
+            width: 1px; height: 18px;
             background: var(--border);
             flex-shrink: 0;
         }
@@ -70,16 +72,16 @@
         .tab-switch {
             display: flex;
             background: var(--bg);
-            border-radius: 16px;
-            padding: 3px;
-            gap: 2px;
+            border-radius: 14px;
+            padding: 2px;
+            gap: 1px;
             flex-shrink: 0;
         }
         .tab-switch button {
-            padding: 4px 12px;
+            padding: 4px 9px;         /* 从4px 12px缩到4px 9px */
             border: none;
             background: transparent;
-            border-radius: 13px;
+            border-radius: 12px;
             font-size: 12px;
             font-family: 'Noto Sans SC', sans-serif;
             cursor: pointer;
@@ -94,29 +96,38 @@
             font-weight: 500;
         }
 
-        .header-spacer { flex: 1; min-width: 4px; }
+        .header-spacer { flex: 1; min-width: 2px; }
 
+        /* ── 已点亮：手机只显示数字 ── */
         .stat-pill {
             background: var(--accent);
-            border-radius: 14px;
-            padding: 4px 10px;
+            border-radius: 12px;
+            padding: 3px 8px;
             font-size: 12px;
             color: var(--blue);
             font-weight: 500;
             flex-shrink: 0;
             white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 2px;
         }
-        .stat-pill strong { font-size: 14px; }
+        .stat-pill strong { font-size: 13px; }
+        /* 手机上隐藏"已点亮"和"处"文字，只保留数字 */
+        .stat-text { display: none; }
+        @media (min-width: 480px) {
+            .stat-text { display: inline; }
+        }
 
-        .header-actions { display: flex; gap: 6px; flex-shrink: 0; }
+        .header-actions { display: flex; gap: 5px; flex-shrink: 0; }
 
         .icon-btn {
-            width: 32px; height: 32px;
-            border-radius: 8px;
+            width: 30px; height: 30px;   /* 从32缩到30 */
+            border-radius: 7px;
             border: 1px solid var(--border);
             background: var(--bg-card);
             cursor: pointer;
-            font-size: 15px;
+            font-size: 14px;
             display: flex; align-items: center; justify-content: center;
             color: var(--text-secondary);
             transition: 0.2s;
@@ -172,7 +183,6 @@
             .memory-modal { max-width: 620px; }
         }
 
-        /* 拖拽条 */
         .drag-handle {
             width: 36px; height: 4px;
             background: var(--border);
@@ -370,7 +380,11 @@
         <button id="btn-world" onclick="initMap('world')">🌏 世界</button>
     </div>
     <div class="header-spacer"></div>
-    <div class="stat-pill">已点亮 <strong id="count">0</strong> 处</div>
+    <div class="stat-pill">
+        <span class="stat-text">已点亮</span>
+        <strong id="count">0</strong>
+        <span class="stat-text">处</span>
+    </div>
     <div class="header-actions">
         <button class="icon-btn" onclick="clearData()" title="清空">🗑</button>
         <button class="icon-btn primary" onclick="saveMapImage()" title="保存图片">📷</button>
@@ -552,7 +566,7 @@
     function saveMapImage() {
         var url = myChart.getDataURL({ type: 'png', pixelRatio: 2, backgroundColor: '#F0F5FA' });
         var a = document.createElement('a');
-        a.download = '我的足迹_' + currentMode + '.png';
+        a.download = '旅行口袋_' + currentMode + '.png';
         a.href = url;
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
     }
@@ -707,4 +721,3 @@
 </script>
 </body>
 </html>
-
