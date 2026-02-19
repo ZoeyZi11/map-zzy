@@ -98,7 +98,6 @@
 
         .header-spacer { flex: 1; min-width: 2px; }
 
-        /* ── 已点亮：手机只显示数字 ── */
         .stat-pill {
             background: var(--accent);
             border-radius: 12px;
@@ -113,11 +112,6 @@
             gap: 2px;
         }
         .stat-pill strong { font-size: 13px; }
-        /* 手机上隐藏"已点亮"和"处"文字，只保留数字 */
-        .stat-text { display: none; }
-        @media (min-width: 480px) {
-            .stat-text { display: inline; }
-        }
 
         .header-actions { display: flex; gap: 5px; flex-shrink: 0; }
 
@@ -339,8 +333,15 @@
         .empty-state .empty-icon { font-size: 44px; margin-bottom: 10px; }
         .empty-state p { font-size: 14px; }
 
-        .add-memory-bar { padding: 0 20px 20px; }
-        .add-memory-bar .btn { width: 100%; }
+        .add-memory-bar { padding: 0 20px 20px; display: flex; gap: 8px; }
+        .add-memory-bar .btn { flex: 1; }
+        .btn-unlight {
+            background: var(--bg);
+            color: #E57373;
+            border: 1px solid #FFCDD2;
+            font-size: 13px;
+        }
+        .btn-unlight:active { background: #FFEBEE; }
 
         /* ═══ LIGHTBOX ═══ */
         .lightbox {
@@ -380,11 +381,7 @@
         <button id="btn-world" onclick="initMap('world')">🌏 世界</button>
     </div>
     <div class="header-spacer"></div>
-    <div class="stat-pill">
-        <span class="stat-text">已点亮</span>
-        <strong id="count">0</strong>
-        <span class="stat-text">处</span>
-    </div>
+    <div class="stat-pill">已点亮 <strong id="count">0</strong> 处</div>
     <div class="header-actions">
         <button class="icon-btn" onclick="clearData()" title="清空">🗑</button>
         <button class="icon-btn primary" onclick="saveMapImage()" title="保存图片">📷</button>
@@ -456,6 +453,7 @@
         </div>
         <div class="add-memory-bar">
             <button class="btn btn-primary" onclick="openUploadFromMemory()">＋ 添加新回忆</button>
+            <button class="btn btn-unlight" onclick="unlightRegion()">取消点亮此地</button>
         </div>
     </div>
 </div>
@@ -693,6 +691,19 @@
     }
 
     function closeMemory() { document.getElementById('memoryOverlay').classList.remove('active'); }
+
+    function unlightRegion() {
+        if (!confirm('确定取消点亮「' + currentRegion + '」吗？该地区的所有回忆也将一并删除。')) return;
+        // 删除回忆
+        var key = memKey(currentMode, currentRegion);
+        delete memoriesData[key];
+        // 从已点亮列表移除
+        var idx = visitedData[currentMode].indexOf(currentRegion);
+        if (idx > -1) visitedData[currentMode].splice(idx, 1);
+        save();
+        closeMemory();
+        initMap(currentMode);
+    }
 
     function deleteMemory(mode, region, idx) {
         if (!confirm('确定删除这段回忆吗？')) return;
